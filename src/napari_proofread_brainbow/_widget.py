@@ -657,10 +657,14 @@ class PointClassWidget(Container):
 
         self._enable_cb = CheckBox(value=False, text='Enable class annotation')
         self._enable_cb.label = ''
+        self._enable_cb.tooltip = (
+            "Enable or disable class annotation for the active points layer."
+        )
 
         self._class_spin = SpinBox(value=0, min=0, max=_N_CLASSES - 1)
         self._class_spin.label = ''
         self._class_spin.enabled = False
+        self._class_spin.tooltip = "Select the class for new points."
 
         self._class_label = Label(value='Current class')
         self._class_label.label = ''
@@ -688,6 +692,9 @@ class PointClassWidget(Container):
         self._assign_btn = PushButton(text='Assign class to selected')
         self._assign_btn.label = ''
         self._assign_btn.enabled = False
+        self._assign_btn.tooltip = (
+            "Assign the currently selected class to the selected points."
+        )
 
         self._enable_cb.changed.connect(self._on_toggle)
         self._class_spin.changed.connect(self._on_class_changed)
@@ -1079,14 +1086,17 @@ class MainWidget(Container):
         scale_reset_z_button = PushButton(text='Reset z')
         scale_reset_z_button.label = ''
         scale_reset_z_button.changed.connect(_scale_z_default)
+        scale_reset_z_button.tooltip = "Reset z scale to 1.0 for all image layers"
 
         scale_reset_y_button = PushButton(text='Reset y')
         scale_reset_y_button.label = ''
         scale_reset_y_button.changed.connect(_scale_y_default)
+        scale_reset_y_button.tooltip = "Reset y scale to 1.0 for all image layers"
 
         scale_reset_x_button = PushButton(text='Reset x')
         scale_reset_x_button.label = ''
         scale_reset_x_button.changed.connect(_scale_x_default)
+        scale_reset_x_button.tooltip = "Reset x scale to 1.0 for all image layers"
 
         scale_reset_buttons = Container(
             layout='horizontal',
