@@ -26,25 +26,39 @@ from qtpy.QtWidgets import QMessageBox
 
 
 _HELP_TEXT = (
-    "Proofread Brainbow - Quick Guide\n"
-    "================================\n\n"
-    "Image workflow\n"
-    "- Open an image (or drag and drop).\n"
-    "- Click 'Convert to RGB'.\n"
-    "- In the layer list, right-click the RGB image and select\n"
-    "  'Split RGB' to separate channels (recommended for 3D).\n\n"
-    "Display tuning\n"
-    "- Use 'Normalize' or 'Contrast max' to adjust visibility.\n"
-    "- In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale'\n"
-    "  if structures look flattened.\n\n"
-    "Points and CSV\n"
-    "- CSV files are loaded as a Points layer.\n"
-    "- Use 'Points size' to improve point visibility.\n"
-    "- Use 'Threshold probability (csv)' to filter predictions\n"
-    "  by confidence.\n\n"
-    "Tip\n"
-    "- Keep Points layers above Image layers so points remain\n"
-    "  clearly visible."
+    "<h2>Proofread Brainbow - Quick Guide</h2>"
+    
+    "<h3>Image workflow</h3>"
+    "<ul>"
+    "  <li>Open an image (or drag and drop).</li>"
+    "  <li>Click 'Convert to RGB'.</li>"
+    "  <li>In the layer list, right-click the RGB image and select "
+    "  'Split RGB' to separate channels (recommended for 3D).</li>"
+    "</ul>"
+    
+    "<h3>Display tuning</h3>"
+    "<ul>"
+    "  <li>Use 'Normalize' or 'Contrast max' to adjust visibility.</li>"
+    "  <li>In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale' "
+    "  if structures look flattened.</li>"
+    "  <li>Use 'Make grid' to overlay a grid on the selected image layer. "
+    "  This is useful to focus on specific regions.</li>"
+    "</ul>"
+    
+    "<h3>Points and CSV</h3>"
+    "<ul>"
+    "  <li>CSV files are loaded as a Points layer.</li>"
+    "  <li>Use 'Points size' to improve point visibility.</li>"
+    "  <li>Enable class annotation to associate a class with each point.</li>"
+    "  <li>Use 'Threshold probability (csv)' to filter predictions "
+    "  by confidence.</li>"
+    "</ul>"
+    
+    "<h3>Tip</h3>"
+    "<ul>"
+    "  <li>Keep Points layers above Image layers so points remain "
+    "  clearly visible.</li>"
+    "</ul>"
 )
 
 
