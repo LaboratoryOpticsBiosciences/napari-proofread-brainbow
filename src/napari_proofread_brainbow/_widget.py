@@ -281,6 +281,7 @@ def widget_contrast_limits_all(
 
 @magicgui(
     scale_z=dict(
+        label='Scale z',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -289,6 +290,7 @@ def widget_contrast_limits_all(
         tooltip="Adjust z scale for all image layers"
     ),
     scale_y=dict(
+        label='Scale y',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -297,6 +299,7 @@ def widget_contrast_limits_all(
         tooltip="Adjust y scale for all image layers"
     ),
     scale_x=dict(
+        label='Scale x',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -446,6 +449,7 @@ def _scale_x_default(value):
 
 @magicgui(
     point_size=dict(
+        label='Point size',
         tooltip="Change size of all points at once",
         widget_type="Slider",
         value=10,
@@ -481,6 +485,7 @@ def widget_points(
 
 @magic_factory(
     xbins=dict(
+        label='x bins',
         widget_type='Slider',
         value=5,
         step=1,
@@ -489,6 +494,7 @@ def widget_points(
         tooltip="Number of bins in x direction for grid"
     ),
     ybins=dict(
+        label='y bins',
         widget_type='Slider',
         value=5,
         step=1,
@@ -1134,6 +1140,7 @@ class MainWidget(Container):
         
         # Share one layer selector across Convert/Normalize/Grid to save space.
         cvt_widget.img_layer.label = 'Image layer'
+        widget_points.point_layer.label = 'Point layer'
         norm_widget.img_layer.visible = False
         grid_widget.img_layer.visible = False
 
