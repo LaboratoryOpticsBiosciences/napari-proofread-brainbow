@@ -10,8 +10,8 @@ contributions:
       python_name: napari_proofread_brainbow._widget:MainWidget
       title: Make main proofreading widget
     - id: napari-proofread-brainbow.threshold_prob
-      python_name: napari_proofread_brainbow._widget:threshold_prob
-      title: Make threshold widget
+      python_name: napari_proofread_brainbow._widget:PredictionWidget
+      title: Make prediction proofreading widget
   widgets:
     - command: napari-proofread-brainbow.make_qwidget
       display_name: Manual Proofread

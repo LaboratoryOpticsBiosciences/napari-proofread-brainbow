@@ -1352,6 +1352,9 @@ def threshold_prob(
     napari.layers.Points or None
         A thresholded points layer when one is created, otherwise ``None``.
     """
+    if point_layer is None:
+        return None
+
     if 'probability' in point_layer.properties:
         prob = point_layer.properties['probability']
         m = prob > threshold
@@ -1384,3 +1387,27 @@ def threshold_prob(
             # Add 'id' properties
             point_layer.features['id'] = ids
             return points
+
+
+class PredictionWidget(Container):
+    """Compact panelized widget for proofreading prediction CSV points."""
+
+    def __init__(self, layout='vertical'):
+        prediction_widget = threshold_prob()
+        prediction_widget.label = ''
+        prediction_widget.call_button.text = 'Threshold probability (csv)'
+        prediction_widget.call_button.tooltip = (
+            'Filter the selected points layer by minimum probability '
+            'and create/update a thresholded layer'
+        )
+        prediction_widget.point_layer.label = 'Point layer'
+        prediction_widget.threshold.label = 'Min probability'
+
+        setup_layout(prediction_widget)
+
+        prediction_tools = _make_titled_panel(
+            'Prediction Tools',
+            [prediction_widget],
+        )
+
+        super().__init__(layout=layout, widgets=[prediction_tools], labels=False)
