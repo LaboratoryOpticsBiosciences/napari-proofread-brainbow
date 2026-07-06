@@ -22,6 +22,7 @@ from magicgui import magic_factory, magicgui
 from magicgui.widgets import CheckBox, Container, Label, PushButton, SpinBox
 from napari import layers as L
 from napari import types
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox
 
 
@@ -1161,12 +1162,17 @@ class MainWidget(Container):
         cvt_widget.img_layer.changed.connect(_sync_shared_img_layer)
         _sync_shared_img_layer()
 
-        help_button = PushButton(text='Show help')
+        help_button = PushButton(text='❓ Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
+        #help_button.native.setStyleSheet('padding: 2px 6px;')
+        help_button.native.setMaximumWidth(help_button.native.sizeHint().width())
         help_button.tooltip = (
             'Show a help dialog with usage instructions and tips for this plugin'
         )
+        help_button_row = Container(layout='horizontal', widgets=[help_button], labels=False)
+        help_button_row.native.layout().setAlignment(help_button.native, Qt.AlignHCenter)
+        setup_layout(help_button_row)
 
         image_tools = _make_titled_panel(
             'Image Layer Tools',
@@ -1193,7 +1199,7 @@ class MainWidget(Container):
         )
 
         widgets = [
-            help_button,
+            help_button_row,
             image_tools,
             point_tools,
         ]
