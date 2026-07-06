@@ -12,8 +12,16 @@ contributions:
     - id: napari-proofread-brainbow.threshold_prob
       python_name: napari_proofread_brainbow._widget:PredictionWidget
       title: Make prediction proofreading widget
+    - id: napari-proofread-brainbow.write_points
+      python_name: napari_proofread_brainbow._io:write_points_csv_preserve_types
+      title: Write points CSV preserving integer properties
   widgets:
     - command: napari-proofread-brainbow.make_qwidget
       display_name: Manual Proofread
     - command: napari-proofread-brainbow.threshold_prob
       display_name: Proofread Predictions (from csv)
+  writers:
+    - command: napari-proofread-brainbow.write_points
+      display_name: points
+      layer_types: ["points"]
+      filename_extensions: [".csv"]
