@@ -27,9 +27,9 @@ from qtpy.QtWidgets import QMessageBox
 
 
 _HELP_TEXT = (
-    "<h2>Proofread Brainbow - Quick Guide</h2>"
+    "<h2>Proofread Brainbow - Quick Guide 🛠</h2>"
     
-    "<h3>Image workflow</h3>"
+    "<h3>🖼️ Image workflow</h3>"
     "<ul>"
     "  <li>Open an image (or drag and drop).</li>"
     "  <li>Click 'Convert to RGB'.</li>"
@@ -37,7 +37,7 @@ _HELP_TEXT = (
     "  'Split RGB' to separate channels (recommended for 3D).</li>"
     "</ul>"
     
-    "<h3>Display tuning</h3>"
+    "<h3>🎨 Display tuning</h3>"
     "<ul>"
     "  <li>Use 'Normalize' or 'Contrast max' to adjust visibility.</li>"
     "  <li>In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale' "
@@ -46,7 +46,7 @@ _HELP_TEXT = (
     "  This is useful to focus on specific regions.</li>"
     "</ul>"
     
-    "<h3>Points and CSV</h3>"
+    "<h3>📄 Points and CSV</h3>"
     "<ul>"
     "  <li>CSV files are loaded as a Points layer.</li>"
     "  <li>Use 'Points size' to improve point visibility.</li>"
@@ -55,7 +55,7 @@ _HELP_TEXT = (
     "  by confidence.</li>"
     "</ul>"
     
-    "<h3>Tip</h3>"
+    "<h3>💡 Tip</h3>"
     "<ul>"
     "  <li>Keep Points layers above Image layers so points remain "
     "  clearly visible.</li>"
