@@ -1150,6 +1150,9 @@ class MainWidget(Container):
         help_button = PushButton(text='Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
+        help_button.tooltip = (
+            'Show a help dialog with usage instructions and tips for this plugin'
+        )
 
         image_tools = _make_titled_panel(
             'Image Layer Tools',
