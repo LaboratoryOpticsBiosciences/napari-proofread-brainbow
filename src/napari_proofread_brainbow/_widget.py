@@ -1357,7 +1357,8 @@ def threshold_prob(
 
     if 'probability' in point_layer.properties:
         prob = point_layer.properties['probability']
-        m = prob > threshold
+        m = prob > threshold        
+
         # update Points
         name = 'threshold_prob'
         names = [layer.name for layer in viewer.layers]
@@ -1366,22 +1367,49 @@ def threshold_prob(
             ids = point_layer.properties['id']
             # update
             points.data = point_layer.data[m]
-            points.properties = dict(id=ids[m],
-                                     probability=prob[m])
+            if 'class' in point_layer.properties:
+                cls = point_layer.properties['class']
+                # update class for thresholded points
+                points.properties = {
+                    'id': ids[m],
+                    'probability': prob[m],
+                    'class': cls[m],
+                }
+            else:
+                points.properties = {
+                    'id': ids[m],
+                    'probability': prob[m],
+                }
         else:
             # new Points
             # Create 'threshold_prob' layer (custom ThresholdPoints).
             # ThresholdPoints is a subclass of napari.layers.Points.
             ids = np.arange(len(prob))
             m = prob > threshold
-            points = ThresholdPoints(
-                data=point_layer.data.copy()[m],
-                name=name,
-                border_color='red',
-                # add properties
-                properties=dict(id=ids[m],  # assign id
-                                probability=prob[m]),  # copy probability
-            )
+            if 'class' in point_layer.properties:
+                cls = point_layer.properties['class']
+                points = ThresholdPoints(
+                    data=point_layer.data.copy()[m],
+                    name=name,
+                    border_color='red',
+                    # add properties
+                    properties={
+                        'id': ids[m],  # assign id
+                        'probability': prob[m],
+                        'class': cls[m],  # copy class
+                    },
+                )
+            else:
+                points = ThresholdPoints(
+                    data=point_layer.data.copy()[m],
+                    name=name,
+                    border_color='red',
+                    # add properties
+                    properties={
+                        'id': ids[m],  # assign id
+                        'probability': prob[m],  # copy probability
+                    },
+                )
             points.source_points = point_layer
             points._id_offset = ids[-1]
             # Add 'id' properties
