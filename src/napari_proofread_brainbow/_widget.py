@@ -834,11 +834,6 @@ class PointClassWidget(Container):
         if not self._assign_selected_points_class(layer, cls):
             return
 
-        # Force the layer name in the GUI to end in '.csv'
-        # This ensures that when you click "Save", the native dialog automatically includes the extension.
-        if not layer.name.lower().endswith('.csv'):
-            layer.name = f"{layer.name}.csv"
-
     # ---- helpers ---------------------------------------------------------
 
     def _update_color_label(self, cls):
@@ -934,11 +929,6 @@ class PointClassWidget(Container):
         layer.current_properties = {'class': [self._class_spin.value]}
         self._disconnect_events()
         self._event_conn = layer.events.data.connect(self._on_data_changed)
-
-        # Force the layer name in the GUI to end in '.csv'
-        # This ensures that when you click "Save", the native dialog automatically includes the extension.
-        if not layer.name.lower().endswith('.csv'):
-            layer.name = f"{layer.name}.csv"
 
         self._refresh_display(layer)
 

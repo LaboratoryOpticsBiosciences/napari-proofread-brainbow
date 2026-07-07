@@ -10,6 +10,20 @@ from typing import Any
 import numpy as np
 
 
+def _has_real_extension(path_obj: Path) -> bool:
+    """Return True when the filename appears to include a real extension.
+
+    Pathlib treats any trailing ``.<text>`` as a suffix, even when users type
+    dataset names such as ``P2.4_sample`` that are not file extensions.
+    """
+    suffix = path_obj.suffix
+    if suffix == '':
+        return False
+
+    ext = suffix[1:]
+    return 1 <= len(ext) <= 6 and ext.isalnum()
+
+
 def _coerce_integer_like(values: np.ndarray) -> np.ndarray:
     """Return int64 when all values are finite integers, otherwise unchanged."""
     if np.issubdtype(values.dtype, np.integer):
@@ -43,9 +57,12 @@ def write_points_csv_preserve_types(
     properties such as ``class``.
     """
     path_obj = Path(path)
-    if path_obj.suffix == '':
-        path_obj = path_obj.with_suffix('.csv')
-    elif path_obj.suffix.lower() != '.csv':
+
+    if path_obj.suffix.lower() == '.csv':
+        pass
+    elif not _has_real_extension(path_obj):
+        path_obj = Path(f"{path_obj}.csv")
+    else:
         return None
 
     points = np.asarray(data)
