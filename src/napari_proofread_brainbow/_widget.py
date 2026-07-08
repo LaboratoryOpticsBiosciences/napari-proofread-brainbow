@@ -1202,7 +1202,7 @@ class MainWidget(Container):
             # Update vmax slider to match the selected image's contrast limit.
             if selected_layer is not None:
                 vmax = selected_layer.contrast_limits[1]
-                # print(f"selected_layer: {selected_layer.name}, vmax: {vmax}")
+
                 if widget_contrast_limits_all.contrast_limits_vmax.value != vmax:
                     widget_contrast_limits_all.contrast_limits_vmax.max = vmax
                     widget_contrast_limits_all.contrast_limits_vmax.value = vmax
@@ -1213,7 +1213,6 @@ class MainWidget(Container):
         help_button = PushButton(text='❓ Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
-        #help_button.native.setStyleSheet('padding: 2px 6px;')
         help_button.tooltip = (
             'Show a help dialog with usage instructions and tips for this plugin'
         )
@@ -1225,7 +1224,6 @@ class MainWidget(Container):
             'Image Layer Tools',
             [
                 cvt_widget,
-                #Label(value='Normalize'),
                 norm_widget,
                 norm_progress_row,
                 Label(value='Contrast max'),
