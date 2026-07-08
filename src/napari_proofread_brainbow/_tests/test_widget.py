@@ -1,6 +1,11 @@
 from napari_proofread_brainbow import MainWidget
-from napari_proofread_brainbow._widget import widget_cvtRGB
+from napari_proofread_brainbow._widget import (
+    _HELP_TEXT,
+    _build_help_dialog,
+    widget_cvtRGB,
+)
 import numpy as np
+from qtpy.QtWidgets import QLabel
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
 # capsys is a pytest fixture that captures stdout and stderr output streams
@@ -33,6 +38,23 @@ def test_main_widget(make_napari_viewer):
     # read captured output and check that it's as we expected
     # captured = capsys.readouterr()
     # assert captured.out == "napari has 1 layers\n"
+
+
+def test_help_dialog_wraps_rich_text_label(qtbot):
+    dialog = _build_help_dialog()
+    qtbot.addWidget(dialog)
+
+    # QMessageBox creates more than one QLabel internally.
+    # Match the one that holds the HTML help body.
+    help_labels = [
+        label for label in dialog.findChildren(QLabel)
+        if label.text() == _HELP_TEXT
+    ]
+
+    assert len(help_labels) == 1
+    assert help_labels[0].wordWrap() is True
+    assert help_labels[0].minimumWidth() >= 520
+    assert dialog.minimumWidth() >= 560
 
 
 # def test_example_magic_widget(make_napari_viewer, capsys):

@@ -24,7 +24,7 @@ from magicgui.widgets import CheckBox, Container, Label, ProgressBar, PushButton
 from napari import layers as L
 from napari import types
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QLabel, QMessageBox, QSizePolicy
 
 
 _HELP_TEXT = (
@@ -64,6 +64,39 @@ _HELP_TEXT = (
 )
 
 
+def _build_help_dialog(parent=None):
+    """Build the plugin help dialog with explicit rich-text wrapping.
+
+    Parameters
+    ----------
+    parent : QWidget or None
+        Optional parent widget used for dialog ownership.
+
+    Returns
+    -------
+    QMessageBox
+        Configured modal help dialog.
+    """
+    msg_box = QMessageBox(parent)
+    msg_box.setWindowTitle('Proofread Brainbow Help')
+    msg_box.setIcon(QMessageBox.Information)
+    msg_box.setTextFormat(Qt.RichText)
+    msg_box.setText(_HELP_TEXT)
+    msg_box.setMinimumWidth(560)
+
+    # Ubuntu may keep rich-text labels too narrow inside QMessageBox.
+    # Force wrapping on the text label and give it a wider preferred width.
+    for label in msg_box.findChildren(QLabel):
+        if label.text() == _HELP_TEXT:
+            label.setWordWrap(True)
+            label.setTextFormat(Qt.RichText)
+            label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            label.setMinimumWidth(520)
+            break
+
+    return msg_box
+
+
 def _show_help_dialog(parent=None):
     """Show the plugin help text in a modal dialog.
 
@@ -77,12 +110,7 @@ def _show_help_dialog(parent=None):
     None
         The dialog is shown for its side effect.
     """
-    msg_box = QMessageBox(parent)
-    msg_box.setWindowTitle('Proofread Brainbow Help')
-    msg_box.setIcon(QMessageBox.Information)
-    msg_box.setText(_HELP_TEXT)
-    # Ensure full lines are visible without aggressive wrapping.
-    msg_box.setStyleSheet('QLabel{min-width: 400px;}')
+    msg_box = _build_help_dialog(parent)
     msg_box.exec_()
 
 
