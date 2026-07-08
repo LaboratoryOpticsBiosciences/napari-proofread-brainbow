@@ -15,11 +15,12 @@ widget_points
 """
 from itertools import tee
 
+from napari.qt import thread_worker
 import numpy as np
 
 import napari
 from magicgui import magic_factory, magicgui
-from magicgui.widgets import CheckBox, Container, Label, PushButton, SpinBox
+from magicgui.widgets import CheckBox, Container, Label, ProgressBar, PushButton, SpinBox
 from napari import layers as L
 from napari import types
 from qtpy.QtCore import Qt
@@ -201,45 +202,59 @@ def widget_cvtRGB(
     else:
         return None
 
+@thread_worker
+def normalize(
+    img_layer: L.Image,
+    perc: float = 99.0,
+):
+    """Calculate the 99th percentile in a background thread."""
+    data = img_layer.data
+    
+    if data.shape[-1] == 3:
+        _vmax = np.percentile(data, perc, axis=tuple(range(data.ndim - 1)))
+        vmax = max(_vmax)
+    else:
+        vmax = np.percentile(data, perc)
+        
+    return vmax
+
+
 @magicgui(
-    img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the "
-                   "given image"),
+    img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the given image"),
     call_button='Normalize (perc=99)',
 )
 def widget_norm(
     viewer: 'napari.Viewer',
     img_layer: L.Image,
 ):
-    """Set the selected image's upper contrast limit to its 99th percentile.
-
-    Parameters
-    ----------
-    viewer : napari.Viewer
-        Active Napari viewer containing the layers.
-    img_layer : napari.layers.Image or None
-        Image layer to normalize.
-
-    Returns
-    -------
-    None
-        The layer contrast limits are updated in place.
-    """
     if img_layer is None:
         return
-    data = img_layer.data
-    # print(data.shape)
-    if data.shape[-1] == 3:
-        # per channel
-        _vmax = np.percentile(data, 99, axis=tuple(range(data.ndim - 1)))
-        # print(f'_vmax: {_vmax}')
-        vmax = max(_vmax)
-        # print(f'vmax: {vmax}')
-    else:
-        vmax = np.percentile(data, 99)
-        # print(f'vmax: {vmax}')
-    contrast_limits = [img_layer.contrast_limits[0], vmax]
-    # print(f'contrast_limits: {contrast_limits}')
-    img_layer.contrast_limits = contrast_limits
+        
+    worker = normalize(img_layer, perc=99)
+    
+    def update_layer(vmax):
+        # Update safely on the main thread
+        img_layer.contrast_limits = [img_layer.contrast_limits[0], vmax]
+
+    worker.returned.connect(update_layer)
+    
+    # 1. Initialize and control the progress bar cleanly
+    def start_progress():
+        # Set to (0,0) for an indeterminate loading/busy animation
+        pbar.range = (0, 0)
+        pbar.show()
+
+    def stop_progress():
+        pbar.hide()
+
+    worker.started.connect(start_progress)
+    worker.finished.connect(stop_progress)
+    
+    worker.start()
+
+# 2. Instantiate the progress bar widget and append it to your FunctionGui container
+pbar = ProgressBar(visible=False)
+widget_norm.append(pbar)
 
 
 @magicgui(
