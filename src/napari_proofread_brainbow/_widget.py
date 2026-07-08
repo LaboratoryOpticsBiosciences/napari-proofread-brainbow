@@ -1214,7 +1214,6 @@ class MainWidget(Container):
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
         #help_button.native.setStyleSheet('padding: 2px 6px;')
-        help_button.native.setMaximumWidth(help_button.native.sizeHint().width())
         help_button.tooltip = (
             'Show a help dialog with usage instructions and tips for this plugin'
         )
