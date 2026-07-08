@@ -35,6 +35,74 @@ You can install `napari-proofread-brainbow` via [pip]:
     pip install napari-proofread-brainbow
 
 
+## Beginner Quick Guide (Step-by-Step)
+
+This plugin provides two panels in napari:
+
+- **Plugins > Proofread Brainbow > Manual Proofread**
+- **Plugins > Proofread Brainbow > Proofread Predictions (from csv)**
+
+### 1. Open napari and load your data
+
+1. Start napari:
+
+    ```bash
+    napari
+    ```
+2. Drag and drop your Brainbow image into the viewer (or use **File > Open File(s)...**).
+3. If you have prediction points, also load the CSV file.
+
+![Screenshot placeholder: napari with raw image and optional CSV loaded](docs/images/step-1-load-data.png)
+
+### 2. Open the plugin widgets
+
+1. Open **Plugins > Proofread Brainbow > Manual Proofread**.
+2. (Optional) Open **Plugins > Proofread Brainbow > Proofread Predictions (from csv)** if you want to review model predictions.
+
+![Screenshot placeholder: plugin menu showing both widgets](docs/images/step-2-open-widgets.png)
+
+### 3. Prepare the image for proofreading
+
+In **Manual Proofread**:
+
+1. Select your image in **Image layer**.
+2. Click **Convert to RGB** (for 4D channel-first/channel-middle data).
+3. Click **Normalize (perc=99)** to improve visibility.
+4. Use **Contrast max** and **ZYX scale** sliders as needed.
+5. (Optional) Click **Make grid** to create a labeled grid overlay for systematic review.
+
+Tip: In napari layer list, right-click an RGB layer and use **Split RGB** when needed (often helpful for 3D inspection).
+
+![Screenshot placeholder: Manual Proofread panel and adjusted image view](docs/images/step-3-image-prep.png)
+
+### 4. Add or edit proofreading points
+
+1. Create or select a **Points** layer.
+2. In **Point Layer Tools**, set **Point size** for better visibility.
+3. (Optional) Enable **Enable class annotation**.
+4. Choose a class number and use **Assign class to selected** to label points.
+
+![Screenshot placeholder: points editing and class annotation controls](docs/images/step-4-points-annotation.png)
+
+### 5. Review prediction CSV points by confidence (optional)
+
+In **Proofread Predictions (from csv)**:
+
+1. Select the loaded prediction points layer.
+2. Adjust **Min probability**.
+3. Click **Threshold probability (csv)** to create/update a filtered layer (`threshold_prob`).
+
+![Screenshot placeholder: thresholded prediction points layer](docs/images/step-5-threshold-predictions.png)
+
+### 6. Save your corrected points
+
+1. Select your final points layer.
+2. Save as CSV from napari.
+3. The plugin writer preserves integer-like class values (for example, class labels) in the output CSV.
+
+![Screenshot placeholder: saving points layer to CSV](docs/images/step-6-save-csv.png)
+
+
 ## Developer Setup
 
 After cloning the repository, you can set up a development environment with conda:
