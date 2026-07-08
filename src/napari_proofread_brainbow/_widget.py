@@ -252,7 +252,7 @@ def widget_norm(
     
     worker.start()
 
-# 2. Instantiate the progress bar widget and append it to your FunctionGui container
+# 2. Instantiate the progress bar widget and append it to the norm widget
 pbar = ProgressBar(visible=False)
 widget_norm.append(pbar)
 
