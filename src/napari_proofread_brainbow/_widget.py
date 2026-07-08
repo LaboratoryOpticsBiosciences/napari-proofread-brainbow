@@ -254,7 +254,7 @@ def widget_norm(
 
 # 2. Instantiate the progress bar widget and append it to the norm widget
 pbar = ProgressBar(visible=False)
-widget_norm.append(pbar)
+pbar.label = ''
 
 
 @magicgui(
@@ -1134,11 +1134,19 @@ class MainWidget(Container):
             labels=False,
         )
 
+        # Keep normalize progress full-width outside the form-layout label column.
+        norm_progress_row = Container(
+            layout='horizontal',
+            widgets=[pbar],
+            labels=False,
+        )
+
         # Adjust layout spacing and margins for each widget to make the UI compact.
         setup_layout(cvt_widget)
         setup_layout(norm_widget)
         setup_layout(grid_widget)
         setup_layout(scale_reset_buttons)
+        setup_layout(norm_progress_row)
         setup_layout(widget_scale)
         setup_layout(widget_contrast_limits_all)
         setup_layout(widget_points)
@@ -1192,6 +1200,7 @@ class MainWidget(Container):
                 cvt_widget,
                 #Label(value='Normalize'),
                 norm_widget,
+                norm_progress_row,
                 Label(value='Contrast max'),
                 widget_contrast_limits_all,
                 Label(value='ZYX scale'),
