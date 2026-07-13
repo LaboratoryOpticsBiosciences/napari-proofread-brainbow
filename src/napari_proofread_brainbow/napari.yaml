@@ -22,6 +22,5 @@ contributions:
       display_name: Proofread Predictions (from csv)
   writers:
     - command: napari-proofread-brainbow.write_points
-      display_name: points
       layer_types: ["points"]
       filename_extensions: [".csv"]

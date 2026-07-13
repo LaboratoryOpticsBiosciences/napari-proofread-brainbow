@@ -48,7 +48,7 @@ def write_points_csv_preserve_types(
     path: str | PathLike[str],
     data: Any,
     meta: dict,
-) -> str | None:
+) -> list[str]:
     """Write points CSV while preserving integer-like property columns.
 
     Napari's built-in points writer concatenates coordinates and properties into
@@ -63,12 +63,11 @@ def write_points_csv_preserve_types(
     elif not _has_real_extension(path_obj):
         path_obj = Path(f"{path_obj}.csv")
     else:
-        return None
+        return []  # Return empty list if it fails
 
     points = np.asarray(data)
     if points.ndim != 2:
-        return None
-
+        return []
     n_points, n_dims = points.shape
     columns: dict[str, np.ndarray] = {
         'index': np.arange(n_points, dtype=np.int64),
@@ -83,7 +82,7 @@ def write_points_csv_preserve_types(
         if arr.ndim > 1:
             arr = np.ravel(arr)
         if arr.shape[0] != n_points:
-            return None
+            return []
         if str(key) == 'class':
             arr = _coerce_integer_like(arr)
         columns[str(key)] = arr
@@ -95,4 +94,4 @@ def write_points_csv_preserve_types(
         for idx in range(n_points):
             writer.writerow([columns[name][idx] for name in header])
 
-    return str(path_obj)
+    return [str(path_obj)]  # Return the list of written paths
