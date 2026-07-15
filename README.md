@@ -98,7 +98,7 @@ In **Proofread Predictions (from csv)**:
 
 1. Select your final points layer.
 2. Save as CSV from napari.
-3. The plugin writer preserves integer-like class values (for example, class labels) in the output CSV.
+3. In the save dialog, set **Files of type** to **Proofread Brainbow points (*.csv)** (as shown in the image). Otherwise, values that should remain integers (for example, class labels) may not be saved correctly.
 
 ![Screenshot placeholder: saving points layer to CSV](docs/images/step-6-save-csv.png)
 
