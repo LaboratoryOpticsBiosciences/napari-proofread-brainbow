@@ -16,18 +16,18 @@ def test_main_widget(make_napari_viewer):
 
     # Check titled image panel
     image_tools = main_widget[1]
-    assert image_tools[0].text == 'Image Layer Tools'
-    assert len(image_tools) == 6
-    assert image_tools[3].contrast_limits_vmax.label == 'vmax'
-    assert image_tools[4].scale_z.label == 'z'
-    assert image_tools[4].scale_y.label == 'y'
-    assert image_tools[4].scale_x.label == 'x'
-    assert image_tools[5].xbins.label == 'x bins'
-    assert image_tools[5].ybins.label == 'y bins'
+    assert image_tools[0].value == 'Image Layer Tools'
+    assert len(image_tools) == 10
+    assert image_tools[4].contrast_limits_vmax.label == 'vmax'
+    assert image_tools[6].scale_z.label == 'scale z'
+    assert image_tools[6].scale_y.label == 'scale y'
+    assert image_tools[6].scale_x.label == 'scale x'
+    assert image_tools[9].xbins.label == 'xbins'
+    assert image_tools[9].ybins.label == 'ybins'
 
     # Check titled point panel
     point_tools = main_widget[2]
-    assert point_tools[0].text == 'Point Layer Tools'
+    assert point_tools[0].value == 'Point Layer Tools'
     assert len(point_tools) == 2
 
     # read captured output and check that it's as we expected
