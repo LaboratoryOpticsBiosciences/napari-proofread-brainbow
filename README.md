@@ -35,6 +35,31 @@ You can install `napari-proofread-brainbow` via [pip]:
     pip install napari-proofread-brainbow
 
 
+## Developer Setup
+
+After cloning the repository, you can set up a development environment with conda:
+
+### Step 1: Create and activate the corresponding conda environment
+
+```
+conda create -n napari-proofread-brainbow -c conda-forge python=3.11 napari pyqt pytest pytest-qt tox -y
+conda activate napari-proofread-brainbow
+```
+
+### Step 2: Install requirements with pip
+
+```
+cd napari-proofread-brainbow
+pip install -e .
+```
+
+### Step 3: Test the plugin by running napari
+
+```
+napari
+```
+
+The plugin should appear under *Plugins > Proofread Brainbow*
 
 
 ## Contributing

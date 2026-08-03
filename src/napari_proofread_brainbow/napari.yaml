@@ -14,6 +14,6 @@ contributions:
       title: Make threshold widget
   widgets:
     - command: napari-proofread-brainbow.make_qwidget
-      display_name: Proofread Brainbow
+      display_name: Manual Proofread
     - command: napari-proofread-brainbow.threshold_prob
-      display_name: Threshold probability (csv)
+      display_name: Proofread Predictions (from csv)

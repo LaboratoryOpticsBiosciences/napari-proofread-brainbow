@@ -11,13 +11,24 @@ def test_main_widget(make_napari_viewer):
     # create main widget, passing in the viewer
     main_widget = MainWidget()
 
-    # Check sub-widgets
-    assert main_widget[0].label == 'Description'  # widget_desc
-    assert main_widget[1].label == 'Convert to RGB'  # widget_cvtRGB
-    assert main_widget[2].label == 'Normalize'  # widget_norm
-    assert main_widget[3].label == 'Contrast max'  # widget_contrast_limits_all
-    assert main_widget[4].label == 'ZYX scale'  # widget_scale
-    assert main_widget[5].label == 'Points size'  # widget_points
+    # Check top-level layout
+    assert main_widget[0].text == 'Show help'
+
+    # Check titled image panel
+    image_tools = main_widget[1]
+    assert image_tools[0].value == 'Image Layer Tools'
+    assert len(image_tools) == 10
+    assert image_tools[4].contrast_limits_vmax.label == 'vmax'
+    assert image_tools[6].scale_z.label == 'scale z'
+    assert image_tools[6].scale_y.label == 'scale y'
+    assert image_tools[6].scale_x.label == 'scale x'
+    assert image_tools[9].xbins.label == 'xbins'
+    assert image_tools[9].ybins.label == 'ybins'
+
+    # Check titled point panel
+    point_tools = main_widget[2]
+    assert point_tools[0].value == 'Point Layer Tools'
+    assert len(point_tools) == 2
 
     # read captured output and check that it's as we expected
     # captured = capsys.readouterr()

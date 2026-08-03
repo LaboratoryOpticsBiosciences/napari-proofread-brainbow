@@ -18,14 +18,86 @@ from itertools import tee
 import numpy as np
 
 from magicgui import magic_factory, magicgui
-from magicgui.widgets import Container, Label
+from magicgui.widgets import Container, Label, PushButton
 from napari import layers as L
 from napari import types
+from qtpy.QtWidgets import QMessageBox
+
+
+_HELP_TEXT = (
+    "Proofread Brainbow - Quick Guide\n"
+    "================================\n\n"
+    "Image workflow\n"
+    "- Open an image (or drag and drop).\n"
+    "- Click 'Convert to RGB'.\n"
+    "- In the layer list, right-click the RGB image and select\n"
+    "  'Split RGB' to separate channels (recommended for 3D).\n\n"
+    "Display tuning\n"
+    "- Use 'Normalize' or 'Contrast max' to adjust visibility.\n"
+    "- In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale'\n"
+    "  if structures look flattened.\n\n"
+    "Points and CSV\n"
+    "- CSV files are loaded as a Points layer.\n"
+    "- Use 'Points size' to improve point visibility.\n"
+    "- Use 'Threshold probability (csv)' to filter predictions\n"
+    "  by confidence.\n\n"
+    "Tip\n"
+    "- Keep Points layers above Image layers so points remain\n"
+    "  clearly visible."
+)
+
+
+def _show_help_dialog(parent=None):
+    """Show plugin usage help in a compact popup dialog."""
+    msg_box = QMessageBox(parent)
+    msg_box.setWindowTitle('Proofread Brainbow Help')
+    msg_box.setIcon(QMessageBox.Information)
+    msg_box.setText(_HELP_TEXT)
+    # Ensure full lines are visible without aggressive wrapping.
+    msg_box.setStyleSheet('QLabel{min-width: 400px;}')
+    msg_box.exec_()
+
+
+def _make_titled_panel(title: str, widgets):
+    """Create a compact bordered panel with a title row."""
+    title_label = Label(value=title)
+    title_label.label = ''
+    title_label.native.setObjectName('panelTitle')
+
+    panel = Container(
+        layout='vertical',
+        widgets=[title_label, *widgets],
+        labels=False,
+    )
+    panel.native.setObjectName('panelContainer')
+    panel.native.setStyleSheet(
+        '#panelContainer {'
+        ' border: 1px solid palette(mid);'
+        ' border-radius: 0px;'
+        ' padding: 0px;'
+        ' margin: 0px;'
+        '}'
+        '#panelTitle {'
+        ' font-weight: 600;'
+        ' padding: 0px;'
+        ' margin-bottom: 4px;'
+        '}'
+    )
+    panel.native.layout().setSpacing(0)  # Distance between adjacent widgets (in pixels)
+    panel.native.layout().setContentsMargins(2, 0, 2, 1)  # Left, top, right, bottom margins (in pixels)
+    return panel
+
+def setup_layout(gui_container):
+    """Adjust layout spacing and margins for a magicgui container."""
+    # Adjust structural layout padding and inner widget spacing
+    qt_layout = gui_container.native.layout()
+    qt_layout.setSpacing(4)
+    qt_layout.setContentsMargins(10, 0, 10, 4)  # left, top, right, bottom
 
 
 @magic_factory(
     img_layer=dict(tooltip="Select raw Brainbow image"),
-    call_button='convertRGB',
+    call_button='Convert to RGB',
 )
 def widget_cvtRGB(
     viewer: 'napari.Viewer',
@@ -33,6 +105,12 @@ def widget_cvtRGB(
 ) -> types.LayerDataTuple:
     # print(len(viewer.layers))
     # print(f"you have selected {img_layer}")
+    
+    # Do nothing if no image layers are present.
+    # This prevents errors when the widget is initialized.
+    if len(viewer.layers) < 1:
+        return None
+    
     data = img_layer.data
     # print(data.shape, data.ndim, data.dtype)
     if data.ndim == 4:
@@ -58,16 +136,17 @@ def widget_cvtRGB(
     else:
         return None
 
-
 @magicgui(
     img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the "
                    "given image"),
-    call_button='normalize(img layer)(perc=99)',
+    call_button='Normalize (perc=99)',
 )
 def widget_norm(
     viewer: 'napari.Viewer',
     img_layer: L.Image,
 ):
+    if img_layer is None:
+        return
     data = img_layer.data
     # print(data.shape)
     if data.shape[-1] == 3:
@@ -87,7 +166,7 @@ def widget_norm(
 @magicgui(
     contrast_limits_vmax=dict(
         label='vmax',
-        widget_type='Slider',
+        widget_type='FloatSlider',
         value=255,
         step=1,
         min=1,
@@ -114,6 +193,7 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
+        tooltip="Adjust z scale for all image layers"
     ),
     scale_y=dict(
         widget_type='FloatSlider',
@@ -121,6 +201,7 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
+        tooltip="Adjust y scale for all image layers"
     ),
     scale_x=dict(
         widget_type='FloatSlider',
@@ -128,21 +209,25 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
+        tooltip="Adjust x scale for all image layers"
     ),
     scale_z_default=dict(
         widget_type='PushButton',
         value=True,
-        text='default_z'
+        text='Reset z',
+        tooltip="Reset z scale to 1.0 for all image layers"
     ),
     scale_y_default=dict(
         widget_type='PushButton',
         value=True,
-        text='default_y'
+        text='Reset y',
+        tooltip="Reset y scale to 1.0 for all image layers"
     ),
     scale_x_default=dict(
         widget_type='PushButton',
         value=True,
-        text='default_x'
+        text='Reset x',
+        tooltip="Reset x scale to 1.0 for all image layers"
     ),
     auto_call=True,
     call_button=False,
@@ -228,6 +313,8 @@ def widget_points(
     point_layer: L.Points,
     point_size,
 ):
+    if point_layer is None:
+        return
     # print(f"you have selected {point_layer}")
     # Seems to interact with scales and distance from camera
     point_layer.size = point_size
@@ -240,6 +327,7 @@ def widget_points(
         step=1,
         min=2,
         max=10,
+        tooltip="Number of bins in x direction for grid"
     ),
     ybins=dict(
         widget_type='Slider',
@@ -247,6 +335,7 @@ def widget_points(
         step=1,
         min=2,
         max=10,
+        tooltip="Number of bins in y direction for grid"
     ),
     # thickness = dict(
     #     widget_type='FloatSlider',
@@ -268,6 +357,9 @@ def widget_grid(
         next(b, None)
         return zip(a, b)
 
+    if img_layer is None:
+        return
+    
     shape = img_layer.data.shape
     width = shape[-2] if shape[-1] == 3 else shape[-1]
     height = shape[-3] if shape[-1] == 3 else shape[-2]
@@ -319,47 +411,131 @@ def widget_grid(
 
 
 class MainWidget(Container):
-    def __init__(
-        self,
-        layout='vertical',
-        widgets=[
-            widget_cvtRGB(),  # 0
-            widget_norm,      # 1
-            widget_contrast_limits_all,  # 2
-            widget_scale,     # 3
-            widget_points,    # 4
-            widget_grid(),    # 5
-        ]
-    ):
-        widgets[0].label = 'Convert to RGB'
-        widgets[1].label = 'Normalize'
-        widgets[2].label = 'Contrast max'
-        widgets[3].label = 'ZYX scale'
-        widgets[4].label = 'Points size'
-        widgets[5].label = 'Grid'
-
-        widget_desc = Label(
-            name='Description',
-            label="Description",
-            value=(
-                "1. Open an image (or drag-and-drop)                         \n"
-                "2. Convert it to RGB                                        \n"
-                "3. In 'layer list' on the left, right-click the image layer \n"
-                "  and 'Split RGB'. This will split channels into layers.    \n"
-                "  This is useful when you go 3D (Ctrl+Y).                   \n"
-                "4. You can adjust 'contrast limits' either using 'Normalize'\n"
-                "module or 'Contrast max'                                    \n"
-                "5. When you are on 3D view mode (Ctrl+Y), z-scale is too    \n"
-                "  short. Increasing it may help by 'ZYX scale' slider.      \n"
-                "6. When you load a .csv file, it becomes a Points layer in  \n"
-                "  napari. You can resize points using 'Points size' module. \n"
-                "IMPORTANT. The order of layers matters. Make sure that      \n"
-                "Points layers are placed above Image layers so that points  \n"
-                "can appear properly."
-            ),
+    def __init__(self, layout='vertical'):
+        cvt_widget = widget_cvtRGB()
+        cvt_widget.call_button.text = 'Convert to RGB'
+        cvt_widget.call_button.tooltip = (
+            'Convert the selected image to RGB by moving the channel axis to the end'
         )
-        widgets.insert(0, widget_desc)
-        super().__init__(layout=layout, widgets=widgets)
+
+        norm_widget = widget_norm
+        norm_widget.call_button.text = 'Normalize (perc=99)'
+        norm_widget.call_button.tooltip = (
+            'Normalize the selected image by setting the maximum contrast limit to '
+            'the 99 percentile of the image'
+        )
+
+        grid_widget = widget_grid()
+        grid_widget.call_button.text = 'Make grid'
+        grid_widget.call_button.tooltip = (
+            'Make a grid on the selected image by drawing lines and labels'
+        )
+        
+        # Hide left labels to keep the UI compact in a single column.
+        cvt_widget.label = ''
+        norm_widget.label = ''
+        widget_contrast_limits_all.label = ''
+        widget_scale.label = ''
+        widget_points.label = ''
+        grid_widget.label = ''
+
+        # Replace stacked reset buttons with one horizontal button row.
+        widget_scale.scale_z_default.visible = False
+        widget_scale.scale_y_default.visible = False
+        widget_scale.scale_x_default.visible = False
+
+        scale_reset_z_button = PushButton(text='Reset z')
+        scale_reset_z_button.label = ''
+        scale_reset_z_button.changed.connect(_scale_z_default)
+
+        scale_reset_y_button = PushButton(text='Reset y')
+        scale_reset_y_button.label = ''
+        scale_reset_y_button.changed.connect(_scale_y_default)
+
+        scale_reset_x_button = PushButton(text='Reset x')
+        scale_reset_x_button.label = ''
+        scale_reset_x_button.changed.connect(_scale_x_default)
+
+        scale_reset_buttons = Container(
+            layout='horizontal',
+            widgets=[
+                scale_reset_z_button,
+                scale_reset_y_button,
+                scale_reset_x_button,
+            ],
+            labels=False,
+        )
+
+        # Adjust layout spacing and margins for each widget to make the UI compact.
+        setup_layout(cvt_widget)
+        setup_layout(norm_widget)
+        setup_layout(grid_widget)
+        setup_layout(scale_reset_buttons)
+        setup_layout(widget_scale)
+        setup_layout(widget_contrast_limits_all)
+        setup_layout(widget_points)
+        
+        # Share one layer selector across Convert/Normalize/Grid to save space.
+        cvt_widget.img_layer.label = 'Image layer'
+        norm_widget.img_layer.visible = False
+        grid_widget.img_layer.visible = False
+
+        def _sync_shared_img_layer(_event=None):
+            selected_layer = cvt_widget.img_layer.value
+            shared_choices = tuple(cvt_widget.img_layer.choices)
+
+            # Keep hidden selectors aligned with the shared selector options.
+            norm_widget.img_layer.choices = shared_choices
+            grid_widget.img_layer.choices = shared_choices
+
+            if selected_layer in shared_choices:
+                if norm_widget.img_layer.value is not selected_layer:
+                    norm_widget.img_layer.value = selected_layer
+                if grid_widget.img_layer.value is not selected_layer:
+                    grid_widget.img_layer.value = selected_layer
+
+            # Update vmax slider to match the selected image's contrast limit.
+            if selected_layer is not None:
+                vmax = selected_layer.contrast_limits[1]
+                # print(f"selected_layer: {selected_layer.name}, vmax: {vmax}")
+                if widget_contrast_limits_all.contrast_limits_vmax.value != vmax:
+                    widget_contrast_limits_all.contrast_limits_vmax.max = vmax
+                    widget_contrast_limits_all.contrast_limits_vmax.value = vmax
+
+        cvt_widget.img_layer.changed.connect(_sync_shared_img_layer)
+        _sync_shared_img_layer()
+
+        help_button = PushButton(text='Show help')
+        help_button.label = ''
+        help_button.changed.connect(lambda _: _show_help_dialog(self.native))
+
+        image_tools = _make_titled_panel(
+            'Image Layer Tools',
+            [
+                cvt_widget,
+                #Label(value='Normalize'),
+                norm_widget,
+                Label(value='Contrast max'),
+                widget_contrast_limits_all,
+                Label(value='ZYX scale'),
+                widget_scale,
+                scale_reset_buttons,
+                Label(value='Grid'),
+                grid_widget,
+            ],
+        )
+
+        point_tools = _make_titled_panel(
+            'Point Layer Tools',
+            [widget_points],
+        )
+
+        widgets = [
+            help_button,
+            image_tools,
+            point_tools,
+        ]
+        super().__init__(layout=layout, widgets=widgets, labels=False)
 
 
 # @magic_factory(
