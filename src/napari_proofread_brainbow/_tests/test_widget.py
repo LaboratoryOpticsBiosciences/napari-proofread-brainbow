@@ -28,7 +28,7 @@ def test_main_widget(make_napari_viewer):
     # Check titled point panel
     point_tools = main_widget[2]
     assert point_tools[0].value == 'Point Layer Tools'
-    assert len(point_tools) == 2
+    assert len(point_tools) == 3
 
     # read captured output and check that it's as we expected
     # captured = capsys.readouterr()
