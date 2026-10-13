@@ -5,4 +5,4 @@ except ImportError:
     __version__ = "unknown"
 
 
-from ._widget import MainWidget, threshold_prob
+from ._widget import MainWidget, PredictionWidget, threshold_prob

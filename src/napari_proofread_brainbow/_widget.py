@@ -22,29 +22,44 @@ from magicgui import magic_factory, magicgui
 from magicgui.widgets import CheckBox, Container, Label, PushButton, SpinBox
 from napari import layers as L
 from napari import types
+from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QMessageBox
 
 
 _HELP_TEXT = (
-    "Proofread Brainbow - Quick Guide\n"
-    "================================\n\n"
-    "Image workflow\n"
-    "- Open an image (or drag and drop).\n"
-    "- Click 'Convert to RGB'.\n"
-    "- In the layer list, right-click the RGB image and select\n"
-    "  'Split RGB' to separate channels (recommended for 3D).\n\n"
-    "Display tuning\n"
-    "- Use 'Normalize' or 'Contrast max' to adjust visibility.\n"
-    "- In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale'\n"
-    "  if structures look flattened.\n\n"
-    "Points and CSV\n"
-    "- CSV files are loaded as a Points layer.\n"
-    "- Use 'Points size' to improve point visibility.\n"
-    "- Use 'Threshold probability (csv)' to filter predictions\n"
-    "  by confidence.\n\n"
-    "Tip\n"
-    "- Keep Points layers above Image layers so points remain\n"
-    "  clearly visible."
+    "<h2>Proofread Brainbow - Quick Guide 🛠</h2>"
+    
+    "<h3>🖼️ Image workflow</h3>"
+    "<ul>"
+    "  <li>Open an image (or drag and drop).</li>"
+    "  <li>Click 'Convert to RGB'.</li>"
+    "  <li>In the layer list, right-click the RGB image and select "
+    "  'Split RGB' to separate channels (recommended for 3D).</li>"
+    "</ul>"
+    
+    "<h3>🎨 Display tuning</h3>"
+    "<ul>"
+    "  <li>Use 'Normalize' or 'Contrast max' to adjust visibility.</li>"
+    "  <li>In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale' "
+    "  if structures look flattened.</li>"
+    "  <li>Use 'Make grid' to overlay a grid on the selected image layer. "
+    "  This is useful to focus on specific regions.</li>"
+    "</ul>"
+    
+    "<h3>📄 Points and CSV</h3>"
+    "<ul>"
+    "  <li>CSV files are loaded as a Points layer.</li>"
+    "  <li>Use 'Points size' to improve point visibility.</li>"
+    "  <li>Enable class annotation to associate a class with each point.</li>"
+    "  <li>Use 'Threshold probability (csv)' to filter predictions "
+    "  by confidence.</li>"
+    "</ul>"
+    
+    "<h3>💡 Tip</h3>"
+    "<ul>"
+    "  <li>Keep Points layers above Image layers so points remain "
+    "  clearly visible.</li>"
+    "</ul>"
 )
 
 
@@ -266,6 +281,7 @@ def widget_contrast_limits_all(
 
 @magicgui(
     scale_z=dict(
+        label='Scale z',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -274,6 +290,7 @@ def widget_contrast_limits_all(
         tooltip="Adjust z scale for all image layers"
     ),
     scale_y=dict(
+        label='Scale y',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -282,6 +299,7 @@ def widget_contrast_limits_all(
         tooltip="Adjust y scale for all image layers"
     ),
     scale_x=dict(
+        label='Scale x',
         widget_type='FloatSlider',
         value=1.0,
         step=0.1,
@@ -431,6 +449,7 @@ def _scale_x_default(value):
 
 @magicgui(
     point_size=dict(
+        label='Point size',
         tooltip="Change size of all points at once",
         widget_type="Slider",
         value=10,
@@ -466,6 +485,7 @@ def widget_points(
 
 @magic_factory(
     xbins=dict(
+        label='x bins',
         widget_type='Slider',
         value=5,
         step=1,
@@ -474,6 +494,7 @@ def widget_points(
         tooltip="Number of bins in x direction for grid"
     ),
     ybins=dict(
+        label='y bins',
         widget_type='Slider',
         value=5,
         step=1,
@@ -657,10 +678,14 @@ class PointClassWidget(Container):
 
         self._enable_cb = CheckBox(value=False, text='Enable class annotation')
         self._enable_cb.label = ''
+        self._enable_cb.tooltip = (
+            "Enable or disable class annotation for the active points layer."
+        )
 
         self._class_spin = SpinBox(value=0, min=0, max=_N_CLASSES - 1)
         self._class_spin.label = ''
         self._class_spin.enabled = False
+        self._class_spin.tooltip = "Select the class for new points."
 
         self._class_label = Label(value='Current class')
         self._class_label.label = ''
@@ -688,6 +713,9 @@ class PointClassWidget(Container):
         self._assign_btn = PushButton(text='Assign class to selected')
         self._assign_btn.label = ''
         self._assign_btn.enabled = False
+        self._assign_btn.tooltip = (
+            "Assign the currently selected class to the selected points."
+        )
 
         self._enable_cb.changed.connect(self._on_toggle)
         self._class_spin.changed.connect(self._on_class_changed)
@@ -1079,14 +1107,17 @@ class MainWidget(Container):
         scale_reset_z_button = PushButton(text='Reset z')
         scale_reset_z_button.label = ''
         scale_reset_z_button.changed.connect(_scale_z_default)
+        scale_reset_z_button.tooltip = "Reset z scale to 1.0 for all image layers"
 
         scale_reset_y_button = PushButton(text='Reset y')
         scale_reset_y_button.label = ''
         scale_reset_y_button.changed.connect(_scale_y_default)
+        scale_reset_y_button.tooltip = "Reset y scale to 1.0 for all image layers"
 
         scale_reset_x_button = PushButton(text='Reset x')
         scale_reset_x_button.label = ''
         scale_reset_x_button.changed.connect(_scale_x_default)
+        scale_reset_x_button.tooltip = "Reset x scale to 1.0 for all image layers"
 
         scale_reset_buttons = Container(
             layout='horizontal',
@@ -1109,6 +1140,7 @@ class MainWidget(Container):
         
         # Share one layer selector across Convert/Normalize/Grid to save space.
         cvt_widget.img_layer.label = 'Image layer'
+        widget_points.point_layer.label = 'Point layer'
         norm_widget.img_layer.visible = False
         grid_widget.img_layer.visible = False
 
@@ -1137,9 +1169,17 @@ class MainWidget(Container):
         cvt_widget.img_layer.changed.connect(_sync_shared_img_layer)
         _sync_shared_img_layer()
 
-        help_button = PushButton(text='Show help')
+        help_button = PushButton(text='❓ Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
+        #help_button.native.setStyleSheet('padding: 2px 6px;')
+        help_button.native.setMaximumWidth(help_button.native.sizeHint().width())
+        help_button.tooltip = (
+            'Show a help dialog with usage instructions and tips for this plugin'
+        )
+        help_button_row = Container(layout='horizontal', widgets=[help_button], labels=False)
+        help_button_row.native.layout().setAlignment(help_button.native, Qt.AlignHCenter)
+        setup_layout(help_button_row)
 
         image_tools = _make_titled_panel(
             'Image Layer Tools',
@@ -1166,7 +1206,7 @@ class MainWidget(Container):
         )
 
         widgets = [
-            help_button,
+            help_button_row,
             image_tools,
             point_tools,
         ]
@@ -1312,9 +1352,13 @@ def threshold_prob(
     napari.layers.Points or None
         A thresholded points layer when one is created, otherwise ``None``.
     """
+    if point_layer is None:
+        return None
+
     if 'probability' in point_layer.properties:
         prob = point_layer.properties['probability']
-        m = prob > threshold
+        m = prob > threshold        
+
         # update Points
         name = 'threshold_prob'
         names = [layer.name for layer in viewer.layers]
@@ -1323,24 +1367,75 @@ def threshold_prob(
             ids = point_layer.properties['id']
             # update
             points.data = point_layer.data[m]
-            points.properties = dict(id=ids[m],
-                                     probability=prob[m])
+            if 'class' in point_layer.properties:
+                cls = point_layer.properties['class']
+                # update class for thresholded points
+                points.properties = {
+                    'id': ids[m],
+                    'probability': prob[m],
+                    'class': cls[m],
+                }
+            else:
+                points.properties = {
+                    'id': ids[m],
+                    'probability': prob[m],
+                }
         else:
             # new Points
             # Create 'threshold_prob' layer (custom ThresholdPoints).
             # ThresholdPoints is a subclass of napari.layers.Points.
             ids = np.arange(len(prob))
             m = prob > threshold
-            points = ThresholdPoints(
-                data=point_layer.data.copy()[m],
-                name=name,
-                border_color='red',
-                # add properties
-                properties=dict(id=ids[m],  # assign id
-                                probability=prob[m]),  # copy probability
-            )
+            if 'class' in point_layer.properties:
+                cls = point_layer.properties['class']
+                points = ThresholdPoints(
+                    data=point_layer.data.copy()[m],
+                    name=name,
+                    border_color='red',
+                    # add properties
+                    properties={
+                        'id': ids[m],  # assign id
+                        'probability': prob[m],
+                        'class': cls[m],  # copy class
+                    },
+                )
+            else:
+                points = ThresholdPoints(
+                    data=point_layer.data.copy()[m],
+                    name=name,
+                    border_color='red',
+                    # add properties
+                    properties={
+                        'id': ids[m],  # assign id
+                        'probability': prob[m],  # copy probability
+                    },
+                )
             points.source_points = point_layer
             points._id_offset = ids[-1]
             # Add 'id' properties
             point_layer.features['id'] = ids
             return points
+
+
+class PredictionWidget(Container):
+    """Compact panelized widget for proofreading prediction CSV points."""
+
+    def __init__(self, layout='vertical'):
+        prediction_widget = threshold_prob()
+        prediction_widget.label = ''
+        prediction_widget.call_button.text = 'Threshold probability (csv)'
+        prediction_widget.call_button.tooltip = (
+            'Filter the selected points layer by minimum probability '
+            'and create/update a thresholded layer'
+        )
+        prediction_widget.point_layer.label = 'Point layer'
+        prediction_widget.threshold.label = 'Min probability'
+
+        setup_layout(prediction_widget)
+
+        prediction_tools = _make_titled_panel(
+            'Prediction Tools',
+            [prediction_widget],
+        )
+
+        super().__init__(layout=layout, widgets=[prediction_tools], labels=False)
