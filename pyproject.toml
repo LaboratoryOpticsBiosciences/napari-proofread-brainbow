@@ -29,6 +29,7 @@ dependencies = [
     "magicgui",
     "qtpy",
     "scikit-image",
+    "npe2>=0.8.3",
 ]
 
 [project.optional-dependencies]
@@ -115,3 +116,11 @@ exclude = [
 
 target-version = "py310"
 fix = true
+
+[tool.uv.sources]
+napari-proofread-brainbow = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "napari-proofread-brainbow",
+]
