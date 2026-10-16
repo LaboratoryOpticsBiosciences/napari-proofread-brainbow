@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import csv
-from os import PathLike
-import os
 from pathlib import Path
 from typing import Any
 from napari_builtins.io import write_csv
