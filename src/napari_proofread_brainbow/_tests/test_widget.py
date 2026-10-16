@@ -17,18 +17,18 @@ def test_main_widget(make_napari_viewer):
     main_widget = MainWidget()
 
     # Check top-level layout
-    assert main_widget[0].text == 'Show help'
+    assert main_widget[0][0].text == '❓ Show help'
 
     # Check titled image panel
     image_tools = main_widget[1]
     assert image_tools[0].value == 'Image Layer Tools'
-    assert len(image_tools) == 10
-    assert image_tools[4].contrast_limits_vmax.label == 'vmax'
-    assert image_tools[6].scale_z.label == 'scale z'
-    assert image_tools[6].scale_y.label == 'scale y'
-    assert image_tools[6].scale_x.label == 'scale x'
-    assert image_tools[9].xbins.label == 'xbins'
-    assert image_tools[9].ybins.label == 'ybins'
+    assert len(image_tools) == 11
+    assert image_tools[5].contrast_limits_vmax.label == 'vmax'
+    assert image_tools[7].scale_z.label == 'Scale z'
+    assert image_tools[7].scale_y.label == 'Scale y'
+    assert image_tools[7].scale_x.label == 'Scale x'
+    assert image_tools[10].xbins.label == 'x bins'
+    assert image_tools[10].ybins.label == 'y bins'
 
     # Check titled point panel
     point_tools = main_widget[2]
