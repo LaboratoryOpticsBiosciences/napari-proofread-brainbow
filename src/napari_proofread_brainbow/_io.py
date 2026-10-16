@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import csv
 from os import PathLike
+import os
 from pathlib import Path
 from typing import Any
-
+from napari_builtins.io import write_csv
 import numpy as np
 
 
@@ -45,16 +46,15 @@ def _coerce_integer_like(values: np.ndarray) -> np.ndarray:
 
 
 def write_points_csv_preserve_types(
-    path: str | PathLike[str],
-    data: Any,
-    meta: dict,
-) -> list[str]:
+        path: str,
+        data: Any,
+        meta: dict
+    ) -> list[str]:
     """Write points CSV while preserving integer-like property columns.
 
     Napari's built-in points writer concatenates coordinates and properties into
     one NumPy table, which upcasts integer properties to float. This writer
-    writes each column separately and preserves integer-like values for
-    properties such as ``class``.
+    writes each column separately and preserves integer-like values.
     """
     path_obj = Path(path)
 
@@ -65,33 +65,27 @@ def write_points_csv_preserve_types(
     else:
         return []  # Return empty list if it fails
 
-    points = np.asarray(data)
-    if points.ndim != 2:
-        return []
-    n_points, n_dims = points.shape
-    columns: dict[str, np.ndarray] = {
-        'index': np.arange(n_points, dtype=np.int64),
-    }
+    properties = meta.get('properties', {})
 
-    for axis in range(n_dims):
-        columns[f'axis-{axis}'] = points[:, axis]
+    # Construct columns without merging their dtypes
+    column_names = ['index']
+    columns = [
+        np.arange(data.shape[0], dtype=int)
+    ]
 
-    properties = meta.get('properties', {}) if isinstance(meta, dict) else {}
-    for key, values in properties.items():
-        arr = np.asarray(values)
-        if arr.ndim > 1:
-            arr = np.ravel(arr)
-        if arr.shape[0] != n_points:
-            return []
-        if str(key) == 'class':
-            arr = _coerce_integer_like(arr)
-        columns[str(key)] = arr
+    # Coordinate columns
+    for n in range(data.shape[1]):
+        column_names.append(f'axis-{n!s}')
+        columns.append(data[:, n])
 
-    header = list(columns.keys())
-    with path_obj.open('w', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-        for idx in range(n_points):
-            writer.writerow([columns[name][idx] for name in header])
+    # Feature columns
+    for name, values in properties.items():
+        column_names.append(name)
+        columns.append(values)
 
-    return [str(path_obj)]  # Return the list of written paths
+    # Build rows while preserving individual column values
+    table = zip(*columns)
+
+    write_csv(path_obj, table, column_names)
+
+    return [str(path_obj)]
