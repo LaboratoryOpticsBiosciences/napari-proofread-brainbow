@@ -20,9 +20,9 @@ def test_write_points_csv_preserves_integer_class_values(tmp_path):
         }
     }
 
-    path = write_points_csv_preserve_types(out, data, meta)
+    paths = write_points_csv_preserve_types(out, data, meta)
 
-    assert path == str(out)
+    assert paths == [str(out)]
     rows = _read_csv_rows(out)
     assert rows[0] == ['index', 'axis-0', 'axis-1', 'class', 'probability']
     assert rows[1][3] == '1'
@@ -49,10 +49,10 @@ def test_write_points_csv_handles_dot_in_stem_and_spaces(tmp_path):
     data = np.array([[5.0, 6.0]], dtype=float)
     meta = {'properties': {'class': np.array([3], dtype=np.int64)}}
 
-    path = write_points_csv_preserve_types(out, data, meta)
+    paths = write_points_csv_preserve_types(out, data, meta)
 
     expected = tmp_path / 'P2.4_female_CA_01z_15_25x_rgb - Points.csv'
-    assert path == str(expected)
+    assert paths == [str(expected)]
     assert expected.exists()
 
 
@@ -61,9 +61,9 @@ def test_write_points_csv_string_path_without_extension(tmp_path):
     data = np.array([[7.0, 8.0]], dtype=float)
     meta = {'properties': {'class': np.array([1.0], dtype=float)}}
 
-    path = write_points_csv_preserve_types(out, data, meta)
+    paths = write_points_csv_preserve_types(out, data, meta)
 
     expected = tmp_path / 'P2.4_female_CA_01z_15_25x_rgb - Points.csv'
-    assert path == str(expected)
+    assert paths == [str(expected)]
     rows = _read_csv_rows(expected)
     assert rows[1][3] == '1'
