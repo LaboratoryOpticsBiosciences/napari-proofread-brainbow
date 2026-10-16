@@ -55,18 +55,3 @@ def test_help_dialog_wraps_rich_text_label(qtbot):
     assert help_labels[0].wordWrap() is True
     assert help_labels[0].minimumWidth() >= 520
     assert dialog.minimumWidth() >= 560
-
-
-# def test_example_magic_widget(make_napari_viewer, capsys):
-#     viewer = make_napari_viewer()
-#     layer = viewer.add_image(np.random.random((100, 100)))
-
-#     # this time, our widget will be a MagicFactory or FunctionGui instance
-#     my_widget = example_magic_widget()
-
-#     # if we "call" this object, it'll execute our function
-#     my_widget(viewer.layers[0])
-
-#     # read captured output and check that it's as we expected
-#     captured = capsys.readouterr()
-#     assert captured.out == f"you have selected {layer}\n"
