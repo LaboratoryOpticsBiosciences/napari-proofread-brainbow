@@ -1,6 +1,11 @@
 from napari_proofread_brainbow import MainWidget
-from napari_proofread_brainbow._widget import widget_cvtRGB
+from napari_proofread_brainbow._widget import (
+    _HELP_TEXT,
+    _build_help_dialog,
+    widget_cvtRGB,
+)
 import numpy as np
+from qtpy.QtWidgets import QLabel
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
 # capsys is a pytest fixture that captures stdout and stderr output streams
@@ -12,18 +17,18 @@ def test_main_widget(make_napari_viewer):
     main_widget = MainWidget()
 
     # Check top-level layout
-    assert main_widget[0].text == 'Show help'
+    assert main_widget[0][0].text == '❓ Show help'
 
     # Check titled image panel
     image_tools = main_widget[1]
     assert image_tools[0].value == 'Image Layer Tools'
-    assert len(image_tools) == 10
-    assert image_tools[4].contrast_limits_vmax.label == 'vmax'
-    assert image_tools[6].scale_z.label == 'scale z'
-    assert image_tools[6].scale_y.label == 'scale y'
-    assert image_tools[6].scale_x.label == 'scale x'
-    assert image_tools[9].xbins.label == 'xbins'
-    assert image_tools[9].ybins.label == 'ybins'
+    assert len(image_tools) == 11
+    assert image_tools[5].contrast_limits_vmax.label == 'vmax'
+    assert image_tools[7].scale_z.label == 'Scale z'
+    assert image_tools[7].scale_y.label == 'Scale y'
+    assert image_tools[7].scale_x.label == 'Scale x'
+    assert image_tools[10].xbins.label == 'x bins'
+    assert image_tools[10].ybins.label == 'y bins'
 
     # Check titled point panel
     point_tools = main_widget[2]
@@ -35,16 +40,18 @@ def test_main_widget(make_napari_viewer):
     # assert captured.out == "napari has 1 layers\n"
 
 
-# def test_example_magic_widget(make_napari_viewer, capsys):
-#     viewer = make_napari_viewer()
-#     layer = viewer.add_image(np.random.random((100, 100)))
+def test_help_dialog_wraps_rich_text_label(qtbot):
+    dialog = _build_help_dialog()
+    qtbot.addWidget(dialog)
 
-#     # this time, our widget will be a MagicFactory or FunctionGui instance
-#     my_widget = example_magic_widget()
+    # QMessageBox creates more than one QLabel internally.
+    # Match the one that holds the HTML help body.
+    help_labels = [
+        label for label in dialog.findChildren(QLabel)
+        if label.text() == _HELP_TEXT
+    ]
 
-#     # if we "call" this object, it'll execute our function
-#     my_widget(viewer.layers[0])
-
-#     # read captured output and check that it's as we expected
-#     captured = capsys.readouterr()
-#     assert captured.out == f"you have selected {layer}\n"
+    assert len(help_labels) == 1
+    assert help_labels[0].wordWrap() is True
+    assert help_labels[0].minimumWidth() >= 520
+    assert dialog.minimumWidth() >= 560

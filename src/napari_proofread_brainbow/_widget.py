@@ -15,15 +15,16 @@ widget_points
 """
 from itertools import tee
 
+from napari.qt import thread_worker
 import numpy as np
 
 import napari
 from magicgui import magic_factory, magicgui
-from magicgui.widgets import CheckBox, Container, Label, PushButton, SpinBox
+from magicgui.widgets import CheckBox, Container, Label, ProgressBar, PushButton, SpinBox
 from napari import layers as L
 from napari import types
 from qtpy.QtCore import Qt
-from qtpy.QtWidgets import QMessageBox
+from qtpy.QtWidgets import QLabel, QMessageBox, QSizePolicy
 
 
 _HELP_TEXT = (
@@ -63,6 +64,39 @@ _HELP_TEXT = (
 )
 
 
+def _build_help_dialog(parent=None):
+    """Build the plugin help dialog with explicit rich-text wrapping.
+
+    Parameters
+    ----------
+    parent : QWidget or None
+        Optional parent widget used for dialog ownership.
+
+    Returns
+    -------
+    QMessageBox
+        Configured modal help dialog.
+    """
+    msg_box = QMessageBox(parent)
+    msg_box.setWindowTitle('Proofread Brainbow Help')
+    msg_box.setIcon(QMessageBox.Information)
+    msg_box.setTextFormat(Qt.RichText)
+    msg_box.setText(_HELP_TEXT)
+    msg_box.setMinimumWidth(560)
+
+    # Ubuntu may keep rich-text labels too narrow inside QMessageBox.
+    # Force wrapping on the text label and give it a wider preferred width.
+    for label in msg_box.findChildren(QLabel):
+        if label.text() == _HELP_TEXT:
+            label.setWordWrap(True)
+            label.setTextFormat(Qt.RichText)
+            label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+            label.setMinimumWidth(520)
+            break
+
+    return msg_box
+
+
 def _show_help_dialog(parent=None):
     """Show the plugin help text in a modal dialog.
 
@@ -76,12 +110,7 @@ def _show_help_dialog(parent=None):
     None
         The dialog is shown for its side effect.
     """
-    msg_box = QMessageBox(parent)
-    msg_box.setWindowTitle('Proofread Brainbow Help')
-    msg_box.setIcon(QMessageBox.Information)
-    msg_box.setText(_HELP_TEXT)
-    # Ensure full lines are visible without aggressive wrapping.
-    msg_box.setStyleSheet('QLabel{min-width: 400px;}')
+    msg_box = _build_help_dialog(parent)
     msg_box.exec_()
 
 
@@ -201,45 +230,59 @@ def widget_cvtRGB(
     else:
         return None
 
+@thread_worker
+def normalize(
+    img_layer: L.Image,
+    perc: float = 99.0,
+):
+    """Calculate the 99th percentile in a background thread."""
+    data = img_layer.data
+    
+    if data.shape[-1] == 3:
+        _vmax = np.percentile(data, perc, axis=tuple(range(data.ndim - 1)))
+        vmax = max(_vmax)
+    else:
+        vmax = np.percentile(data, perc)
+        
+    return vmax
+
+
 @magicgui(
-    img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the "
-                   "given image"),
+    img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the given image"),
     call_button='Normalize (perc=99)',
 )
 def widget_norm(
     viewer: 'napari.Viewer',
     img_layer: L.Image,
 ):
-    """Set the selected image's upper contrast limit to its 99th percentile.
-
-    Parameters
-    ----------
-    viewer : napari.Viewer
-        Active Napari viewer containing the layers.
-    img_layer : napari.layers.Image or None
-        Image layer to normalize.
-
-    Returns
-    -------
-    None
-        The layer contrast limits are updated in place.
-    """
     if img_layer is None:
         return
-    data = img_layer.data
-    # print(data.shape)
-    if data.shape[-1] == 3:
-        # per channel
-        _vmax = np.percentile(data, 99, axis=tuple(range(data.ndim - 1)))
-        # print(f'_vmax: {_vmax}')
-        vmax = max(_vmax)
-        # print(f'vmax: {vmax}')
-    else:
-        vmax = np.percentile(data, 99)
-        # print(f'vmax: {vmax}')
-    contrast_limits = [img_layer.contrast_limits[0], vmax]
-    # print(f'contrast_limits: {contrast_limits}')
-    img_layer.contrast_limits = contrast_limits
+        
+    worker = normalize(img_layer, perc=99)
+    
+    def update_layer(vmax):
+        # Update safely on the main thread
+        img_layer.contrast_limits = [img_layer.contrast_limits[0], vmax]
+
+    worker.returned.connect(update_layer)
+    
+    # 1. Initialize and control the progress bar cleanly
+    def start_progress():
+        # Set to (0,0) for an indeterminate loading/busy animation
+        pbar.range = (0, 0)
+        pbar.show()
+
+    def stop_progress():
+        pbar.hide()
+
+    worker.started.connect(start_progress)
+    worker.finished.connect(stop_progress)
+    
+    worker.start()
+
+# 2. Instantiate the progress bar widget and append it to the norm widget
+pbar = ProgressBar(visible=False)
+pbar.label = ''
 
 
 @magicgui(
@@ -834,11 +877,6 @@ class PointClassWidget(Container):
         if not self._assign_selected_points_class(layer, cls):
             return
 
-        # Force the layer name in the GUI to end in '.csv'
-        # This ensures that when you click "Save", the native dialog automatically includes the extension.
-        if not layer.name.lower().endswith('.csv'):
-            layer.name = f"{layer.name}.csv"
-
     # ---- helpers ---------------------------------------------------------
 
     def _update_color_label(self, cls):
@@ -934,11 +972,6 @@ class PointClassWidget(Container):
         layer.current_properties = {'class': [self._class_spin.value]}
         self._disconnect_events()
         self._event_conn = layer.events.data.connect(self._on_data_changed)
-
-        # Force the layer name in the GUI to end in '.csv'
-        # This ensures that when you click "Save", the native dialog automatically includes the extension.
-        if not layer.name.lower().endswith('.csv'):
-            layer.name = f"{layer.name}.csv"
 
         self._refresh_display(layer)
 
@@ -1129,11 +1162,19 @@ class MainWidget(Container):
             labels=False,
         )
 
+        # Keep normalize progress full-width outside the form-layout label column.
+        norm_progress_row = Container(
+            layout='horizontal',
+            widgets=[pbar],
+            labels=False,
+        )
+
         # Adjust layout spacing and margins for each widget to make the UI compact.
         setup_layout(cvt_widget)
         setup_layout(norm_widget)
         setup_layout(grid_widget)
         setup_layout(scale_reset_buttons)
+        setup_layout(norm_progress_row)
         setup_layout(widget_scale)
         setup_layout(widget_contrast_limits_all)
         setup_layout(widget_points)
@@ -1161,7 +1202,7 @@ class MainWidget(Container):
             # Update vmax slider to match the selected image's contrast limit.
             if selected_layer is not None:
                 vmax = selected_layer.contrast_limits[1]
-                # print(f"selected_layer: {selected_layer.name}, vmax: {vmax}")
+
                 if widget_contrast_limits_all.contrast_limits_vmax.value != vmax:
                     widget_contrast_limits_all.contrast_limits_vmax.max = vmax
                     widget_contrast_limits_all.contrast_limits_vmax.value = vmax
@@ -1172,8 +1213,6 @@ class MainWidget(Container):
         help_button = PushButton(text='❓ Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
-        #help_button.native.setStyleSheet('padding: 2px 6px;')
-        help_button.native.setMaximumWidth(help_button.native.sizeHint().width())
         help_button.tooltip = (
             'Show a help dialog with usage instructions and tips for this plugin'
         )
@@ -1185,8 +1224,8 @@ class MainWidget(Container):
             'Image Layer Tools',
             [
                 cvt_widget,
-                #Label(value='Normalize'),
                 norm_widget,
+                norm_progress_row,
                 Label(value='Contrast max'),
                 widget_contrast_limits_all,
                 Label(value='ZYX scale'),
