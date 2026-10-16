@@ -29,21 +29,6 @@ def test_write_points_csv_preserves_integer_class_values(tmp_path):
     assert rows[2][3] == '2'
 
 
-def test_write_points_csv_coerces_integer_like_float_class_values(tmp_path):
-    out = tmp_path / 'points.csv'
-    data = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=float)
-    meta = {
-        'properties': {
-            'class': np.array([1.0, 2.0], dtype=float),
-        }
-    }
-
-    write_points_csv_preserve_types(out, data, meta)
-    rows = _read_csv_rows(out)
-    assert rows[1][3] == '1'
-    assert rows[2][3] == '2'
-
-
 def test_write_points_csv_handles_dot_in_stem_and_spaces(tmp_path):
     out = tmp_path / 'P2.4_female_CA_01z_15_25x_rgb - Points'
     data = np.array([[5.0, 6.0]], dtype=float)

@@ -24,27 +24,6 @@ def _has_real_extension(path_obj: Path) -> bool:
     ext = suffix[1:]
     return 1 <= len(ext) <= 6 and ext.isalnum()
 
-
-def _coerce_integer_like(values: np.ndarray) -> np.ndarray:
-    """Return int64 when all values are finite integers, otherwise unchanged."""
-    if np.issubdtype(values.dtype, np.integer):
-        return values.astype(np.int64, copy=False)
-
-    if not np.issubdtype(values.dtype, np.floating):
-        return values
-
-    if values.size == 0:
-        return values.astype(np.int64)
-
-    if not np.all(np.isfinite(values)):
-        return values
-
-    rounded = np.rint(values)
-    if np.allclose(values, rounded, atol=0.0):
-        return rounded.astype(np.int64)
-    return values
-
-
 def write_points_csv_preserve_types(
         path: str,
         data: Any,
