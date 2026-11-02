@@ -76,6 +76,14 @@ where = ["src"]
 write_to = "src/napari_proofread_brainbow/_version.py"
 fallback_version = "0.0.1+nogit"
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+xfail_strict = true
+# filterwarnings = ["error"]  # recommended by PP309; deprecation warnings cause failures so leaving for the user to enable if desired
+log_cli_level = "INFO"
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 79
 fix = true
