@@ -1,12 +1,12 @@
-# napari-proofread-brainbow
-https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow
+# napari-point-proofread
+https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread
 
-[![License MIT](https://img.shields.io/pypi/l/napari-proofread-brainbow.svg?color=green)](https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/raw/main/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/napari-proofread-brainbow.svg?color=green)](https://pypi.org/project/napari-proofread-brainbow)
-[![Python Version](https://img.shields.io/pypi/pyversions/napari-proofread-brainbow.svg?color=green)](https://python.org)
-[![tests](https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/workflows/tests/badge.svg)](https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/actions)
-[![codecov](https://codecov.io/gh/LaboratoryOpticsBiosciences/napari-proofread-brainbow/branch/main/graph/badge.svg)](https://codecov.io/gh/LaboratoryOpticsBiosciences/napari-proofread-brainbow)
-[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-proofread-brainbow)](https://napari-hub.org/plugins/napari-proofread-brainbow)
+[![License MIT](https://img.shields.io/pypi/l/napari-point-proofread.svg?color=green)](https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/raw/main/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/napari-point-proofread.svg?color=green)](https://pypi.org/project/napari-point-proofread)
+[![Python Version](https://img.shields.io/pypi/pyversions/napari-point-proofread.svg?color=green)](https://python.org)
+[![tests](https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/workflows/tests/badge.svg)](https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/actions)
+[![codecov](https://codecov.io/gh/LaboratoryOpticsBiosciences/napari-point-proofread/branch/main/graph/badge.svg)](https://codecov.io/gh/LaboratoryOpticsBiosciences/napari-point-proofread)
+[![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-point-proofread)](https://napari-hub.org/plugins/napari-point-proofread)
 [![npe2](https://img.shields.io/badge/plugin-npe2-blue?link=https://napari.org/stable/plugins/index.html)](https://napari.org/stable/plugins/index.html)
 [![Copier](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-purple.json)](https://github.com/copier-org/copier)
 
@@ -15,7 +15,7 @@ Proofreading Brainbow images with napari
 ----------------------------------
 
 > [!IMPORTANT]
-> This repository has been migrated to [LaboratoryOpticsBiosciences/napari-proofread-brainbow](https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow) since v0.3.1.
+> Since v0.4.0 this plugin is published as `napari-point-proofread`. It was previously released as `napari-proofread-brainbow` (up to v0.3.1), which is no longer maintained. If you have the old package installed, run `pip uninstall napari-proofread-brainbow` before installing the new one.
 
 
 This [napari] plugin was generated with [copier] using the [napari-plugin-template].
@@ -30,10 +30,13 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
-You can install `napari-proofread-brainbow` via [pip]:
+You can install `napari-point-proofread` via [pip]:
 
-    pip install napari-proofread-brainbow
+    pip install napari-point-proofread
 
+If napari is not already installed, you can install `napari-point-proofread` with napari and Qt via:
+
+    pip install "napari-point-proofread[all]"
 
 ## Beginner Quick Guide (Step-by-Step)
 
@@ -112,16 +115,18 @@ After cloning the repository, you can set up a development environment with cond
 #### Step 1: Create and activate the corresponding conda environment
 
 ```
-conda create -n napari-proofread-brainbow -c conda-forge python=3.11 napari pyqt pytest pytest-qt tox -y
-conda activate napari-proofread-brainbow
+conda create -n napari-point-proofread -c conda-forge python=3.11 pip -y
+conda activate napari-point-proofread
 ```
 
 #### Step 2: Install requirements with pip
 
 ```
-cd napari-proofread-brainbow
-pip install -e .
+cd napari-point-proofread
+pip install -e . --group dev
 ```
+
+`--group` requires pip >= 25.1.
 
 #### Step 3: Test the plugin by running napari
 
@@ -134,9 +139,11 @@ The plugin should appear under *Plugins > Proofread Brainbow*
 ### With uv
 
 ```
-uv sync --extra testing
+uv sync
 uv run napari
 ```
+
+Run the tests with `uv run pytest` (current environment) or `uv run tox` (full matrix).
 
 
 
@@ -149,7 +156,7 @@ the coverage at least stays the same before you submit a pull request.
 ## License
 
 Distributed under the terms of the [MIT] license,
-"napari-proofread-brainbow" is free and open source software
+"napari-point-proofread" is free and open source software
 
 ## Issues
 
