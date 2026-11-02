@@ -3,7 +3,8 @@ name = "napari-proofread-brainbow"
 dynamic = ["version"]
 description = "Proofreading Brainbow images with napari"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   {name = "Seongbin Lim"},
   {email = "sungbin246@gmail.com"},
@@ -12,7 +13,6 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Framework :: napari",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -20,35 +20,47 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Image Processing",
 ]
 requires-python = ">=3.11"
+# napari can be included in dependencies if napari imports are required.
+# However, you should not include napari[all], napari[qt],
+# or any other Qt bindings directly (e.g. PyQt5, PySide2).
+# See best practices: https://napari.org/stable/plugins/building_a_plugin/best_practices.html
 dependencies = [
+    "napari",  # imported at module level (napari.qt, napari.layers, napari_builtins)
     "numpy",
     "magicgui",
     "qtpy",
-    "scikit-image",
-    "npe2>=0.8.3",
 ]
 
 [project.optional-dependencies]
-testing = [
-    "tox",
+# Allow easily installation with the full, default napari installation
+# (including Qt backend) using napari-proofread-brainbow[all].
+all = ["napari[all]"]
+
+[dependency-groups]
+dev = [
+    "tox-uv",
     "pytest",  # https://docs.pytest.org/en/latest/contents.html
     "pytest-cov",  # https://pytest-cov.readthedocs.io/en/latest/
+    "prek",  # fast drop-in replacement for pre-commit
     "pytest-qt",  # https://pytest-qt.readthedocs.io/en/latest/
-    "napari",
-    "pyqt6",
-    "setuptools-scm",
+    "napari[qt]",  # test with napari's default Qt bindings
 ]
 
 [project.entry-points."napari.manifest"]
 napari-proofread-brainbow = "napari_proofread_brainbow:napari.yaml"
 
-
+[project.urls]
+"Bug Tracker" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/issues"
+"Documentation" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow#README.md"
+"Source Code" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow"
+"User Support" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/issues"
 
 [build-system]
-requires = ["setuptools>=42.0.0", "wheel", "setuptools_scm"]
+requires = ["setuptools>=77.0.3", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -60,19 +72,19 @@ where = ["src"]
 [tool.setuptools.package-data]
 "*" = ["*.yaml"]
 
-
 [tool.setuptools_scm]
 write_to = "src/napari_proofread_brainbow/_version.py"
 fallback_version = "0.0.1+nogit"
 
-
-[tool.black]
-line-length = 79
-target-version = ['py310', 'py311', 'py312', 'py313']
-
 [tool.ruff]
 line-length = 79
-lint.select = [
+fix = true
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+select = [
     "E", "F", "W", #flake8
     "UP", # pyupgrade
     "I", # isort
@@ -85,41 +97,7 @@ lint.select = [
     "PIE", # flake8-pie
     "SIM", # flake8-simplify
 ]
-lint.ignore = [
-    "E501", # line too long. let black handle this
+ignore = [
+    "E501", # line too long. handled by formatter
     "UP006", "UP007", # type annotation. As using magicgui require runtime type annotation then we disable this.
-    "SIM117", # flake8-simplify - some of merged with statements are not looking great with black, reanble after drop python 3.9
-]
-
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".mypy_cache",
-    ".pants.d",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "*vendored*",
-    "*_vendor*",
-]
-
-target-version = "py311"
-fix = true
-
-[tool.uv.sources]
-napari-proofread-brainbow = { workspace = true }
-
-[dependency-groups]
-dev = [
-    "napari-proofread-brainbow",
 ]
