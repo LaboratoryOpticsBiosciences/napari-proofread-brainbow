@@ -1,4 +1,4 @@
-"""I/O helpers for napari-proofread-brainbow."""
+"""I/O helpers for napari-point-proofread."""
 
 from __future__ import annotations
 

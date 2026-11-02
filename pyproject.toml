@@ -1,5 +1,5 @@
 [project]
-name = "napari-proofread-brainbow"
+name = "napari-point-proofread"
 dynamic = ["version"]
 description = "Proofreading Brainbow images with napari"
 readme = "README.md"
@@ -37,7 +37,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Allow easily installation with the full, default napari installation
-# (including Qt backend) using napari-proofread-brainbow[all].
+# (including Qt backend) using napari-point-proofread[all].
 all = ["napari[all]"]
 
 [dependency-groups]
@@ -51,13 +51,13 @@ dev = [
 ]
 
 [project.entry-points."napari.manifest"]
-napari-proofread-brainbow = "napari_proofread_brainbow:napari.yaml"
+napari-point-proofread = "napari_point_proofread:napari.yaml"
 
 [project.urls]
-"Bug Tracker" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/issues"
-"Documentation" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow#README.md"
-"Source Code" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow"
-"User Support" = "https://github.com/LaboratoryOpticsBiosciences/napari-proofread-brainbow/issues"
+"Bug Tracker" = "https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/issues"
+"Documentation" = "https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread#README.md"
+"Source Code" = "https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread"
+"User Support" = "https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/issues"
 
 [build-system]
 requires = ["setuptools>=77.0.3", "setuptools_scm"]
@@ -73,7 +73,7 @@ where = ["src"]
 "*" = ["*.yaml"]
 
 [tool.setuptools_scm]
-write_to = "src/napari_proofread_brainbow/_version.py"
+write_to = "src/napari_point_proofread/_version.py"
 fallback_version = "0.0.1+nogit"
 
 [tool.pytest.ini_options]

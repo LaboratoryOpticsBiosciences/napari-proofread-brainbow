@@ -1,6 +1,6 @@
 ---
 name: "\U0001F4DA Documentation"
-about: Report an issue with napari-proofread-brainbow documentation
+about: Report an issue with napari-point-proofread documentation
 title: ''
 labels: documentation
 assignees: ''

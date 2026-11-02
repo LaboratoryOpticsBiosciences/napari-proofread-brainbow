@@ -1,6 +1,6 @@
 ---
 name: "\U0001F680 Feature Request"
-about: Submit a proposal/request for a new napari-proofread-brainbow feature
+about: Submit a proposal/request for a new napari-point-proofread feature
 title: ''
 labels: feature
 assignees: ''

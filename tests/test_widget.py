@@ -1,5 +1,5 @@
-from napari_proofread_brainbow import MainWidget
-from napari_proofread_brainbow._widget import (
+from napari_point_proofread import MainWidget
+from napari_point_proofread._widget import (
     _HELP_TEXT,
     _build_help_dialog,
     widget_cvtRGB,

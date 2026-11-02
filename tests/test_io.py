@@ -2,7 +2,7 @@ import csv
 
 import numpy as np
 
-from napari_proofread_brainbow._io import write_points_csv_preserve_types
+from napari_point_proofread._io import write_points_csv_preserve_types
 
 
 def _read_csv_rows(path):
