@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
-from napari_builtins.io import write_csv
+
 import numpy as np
+from napari_builtins.io import write_csv
 
 
 def _has_real_extension(path_obj: Path) -> bool:
@@ -21,11 +22,10 @@ def _has_real_extension(path_obj: Path) -> bool:
     ext = suffix[1:]
     return 1 <= len(ext) <= 6 and ext.isalnum()
 
+
 def write_points_csv_preserve_types(
-        path: str,
-        data: Any,
-        meta: dict
-    ) -> list[str]:
+    path: str, data: Any, meta: dict
+) -> list[str]:
     """Write points CSV while preserving integer-like property columns.
 
     Napari's built-in points writer concatenates coordinates and properties into
@@ -37,7 +37,7 @@ def write_points_csv_preserve_types(
     if path_obj.suffix.lower() == '.csv':
         pass
     elif not _has_real_extension(path_obj):
-        path_obj = Path(f"{path_obj}.csv")
+        path_obj = Path(f'{path_obj}.csv')
     else:
         return []  # Return empty list if it fails
 
@@ -45,9 +45,7 @@ def write_points_csv_preserve_types(
 
     # Construct columns without merging their dtypes
     column_names = ['index']
-    columns = [
-        np.arange(data.shape[0], dtype=int)
-    ]
+    columns = [np.arange(data.shape[0], dtype=int)]
 
     # Coordinate columns
     for n in range(data.shape[1]):

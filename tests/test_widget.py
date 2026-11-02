@@ -1,11 +1,13 @@
+import numpy as np
+from qtpy.QtWidgets import QLabel
+
 from napari_point_proofread import MainWidget
 from napari_point_proofread._widget import (
     _HELP_TEXT,
     _build_help_dialog,
     widget_cvtRGB,
 )
-import numpy as np
-from qtpy.QtWidgets import QLabel
+
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object
 # capsys is a pytest fixture that captures stdout and stderr output streams
@@ -47,7 +49,8 @@ def test_help_dialog_wraps_rich_text_label(qtbot):
     # QMessageBox creates more than one QLabel internally.
     # Match the one that holds the HTML help body.
     help_labels = [
-        label for label in dialog.findChildren(QLabel)
+        label
+        for label in dialog.findChildren(QLabel)
         if label.text() == _HELP_TEXT
     ]
 

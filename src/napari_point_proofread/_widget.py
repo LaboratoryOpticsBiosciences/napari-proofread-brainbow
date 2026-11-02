@@ -13,54 +13,56 @@ widget_scale
 widget_points
     Change size of points at once
 """
+
 from itertools import tee
 
-from napari.qt import thread_worker
-import numpy as np
-
 import napari
+import numpy as np
 from magicgui import magic_factory, magicgui
-from magicgui.widgets import CheckBox, Container, Label, ProgressBar, PushButton, SpinBox
+from magicgui.widgets import (
+    CheckBox,
+    Container,
+    Label,
+    ProgressBar,
+    PushButton,
+    SpinBox,
+)
 from napari import layers as L
 from napari import types
+from napari.qt import thread_worker
 from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QLabel, QMessageBox, QSizePolicy
 
-
 _HELP_TEXT = (
-    "<h2>Proofread Brainbow - Quick Guide 🛠</h2>"
-    
-    "<h3>🖼️ Image workflow</h3>"
-    "<ul>"
-    "  <li>Open an image (or drag and drop).</li>"
+    '<h2>Proofread Brainbow - Quick Guide 🛠</h2>'
+    '<h3>🖼️ Image workflow</h3>'
+    '<ul>'
+    '  <li>Open an image (or drag and drop).</li>'
     "  <li>Click 'Convert to RGB'.</li>"
-    "  <li>In the layer list, right-click the RGB image and select "
+    '  <li>In the layer list, right-click the RGB image and select '
     "  'Split RGB' to separate channels (recommended for 3D).</li>"
-    "</ul>"
-    
-    "<h3>🎨 Display tuning</h3>"
-    "<ul>"
+    '</ul>'
+    '<h3>🎨 Display tuning</h3>'
+    '<ul>'
     "  <li>Use 'Normalize' or 'Contrast max' to adjust visibility.</li>"
     "  <li>In 3D mode (Ctrl+Y), increase z scale with 'ZYX scale' "
-    "  if structures look flattened.</li>"
+    '  if structures look flattened.</li>'
     "  <li>Use 'Make grid' to overlay a grid on the selected image layer. "
-    "  This is useful to focus on specific regions.</li>"
-    "</ul>"
-    
-    "<h3>📄 Points and CSV</h3>"
-    "<ul>"
-    "  <li>CSV files are loaded as a Points layer.</li>"
+    '  This is useful to focus on specific regions.</li>'
+    '</ul>'
+    '<h3>📄 Points and CSV</h3>'
+    '<ul>'
+    '  <li>CSV files are loaded as a Points layer.</li>'
     "  <li>Use 'Points size' to improve point visibility.</li>"
-    "  <li>Enable class annotation to associate a class with each point.</li>"
+    '  <li>Enable class annotation to associate a class with each point.</li>'
     "  <li>Use 'Threshold probability (csv)' to filter predictions "
-    "  by confidence.</li>"
-    "</ul>"
-    
-    "<h3>💡 Tip</h3>"
-    "<ul>"
-    "  <li>Keep Points layers above Image layers so points remain "
-    "  clearly visible.</li>"
-    "</ul>"
+    '  by confidence.</li>'
+    '</ul>'
+    '<h3>💡 Tip</h3>'
+    '<ul>'
+    '  <li>Keep Points layers above Image layers so points remain '
+    '  clearly visible.</li>'
+    '</ul>'
 )
 
 
@@ -152,9 +154,14 @@ def _make_titled_panel(title: str, widgets):
         ' margin-bottom: 4px;'
         '}'
     )
-    panel.native.layout().setSpacing(0)  # Distance between adjacent widgets (in pixels)
-    panel.native.layout().setContentsMargins(2, 0, 2, 1)  # Left, top, right, bottom margins (in pixels)
+    panel.native.layout().setSpacing(
+        0
+    )  # Distance between adjacent widgets (in pixels)
+    panel.native.layout().setContentsMargins(
+        2, 0, 2, 1
+    )  # Left, top, right, bottom margins (in pixels)
     return panel
+
 
 def setup_layout(gui_container):
     """Apply compact spacing and margins to a magicgui container.
@@ -176,7 +183,7 @@ def setup_layout(gui_container):
 
 
 @magic_factory(
-    img_layer=dict(tooltip="Select raw Brainbow image"),
+    img_layer=dict(tooltip='Select raw Brainbow image'),
     call_button='Convert to RGB',
 )
 def widget_cvtRGB(
@@ -199,12 +206,12 @@ def widget_cvtRGB(
     """
     # print(len(viewer.layers))
     # print(f"you have selected {img_layer}")
-    
+
     # Do nothing if no image layers are present.
     # This prevents errors when the widget is initialized.
     if len(viewer.layers) < 1:
         return None
-    
+
     data = img_layer.data
     # print(data.shape, data.ndim, data.dtype)
     if data.ndim == 4:
@@ -215,20 +222,17 @@ def widget_cvtRGB(
             # (z, c=3, y, x)
             # data = img_layer.data.transpose(1, 0, 2, 3)
             viewer.layers.pop(viewer.layers.index(img_layer))
-            kwargs = dict(
-                name=img_layer.name + '_rgb'
-            )
+            kwargs = dict(name=img_layer.name + '_rgb')
             return (data.transpose(0, 2, 3, 1), kwargs, 'image')
         elif data.shape[0] == 3:
             # (c=3, z, y, x)
             # data = img_layer.data.transpose(1, 0, 2, 3)
             viewer.layers.pop(viewer.layers.index(img_layer))
-            kwargs = dict(
-                name=img_layer.name + '_rgb'
-            )
+            kwargs = dict(name=img_layer.name + '_rgb')
             return (data.transpose(1, 2, 3, 0), kwargs, 'image')
     else:
         return None
+
 
 @thread_worker
 def normalize(
@@ -237,18 +241,20 @@ def normalize(
 ):
     """Calculate the 99th percentile in a background thread."""
     data = img_layer.data
-    
+
     if data.shape[-1] == 3:
         _vmax = np.percentile(data, perc, axis=tuple(range(data.ndim - 1)))
         vmax = max(_vmax)
     else:
         vmax = np.percentile(data, perc)
-        
+
     return vmax
 
 
 @magicgui(
-    img_layer=dict(tooltip="Set maximum contrast limit to 99 percentile of the given image"),
+    img_layer=dict(
+        tooltip='Set maximum contrast limit to 99 percentile of the given image'
+    ),
     call_button='Normalize (perc=99)',
 )
 def widget_norm(
@@ -257,15 +263,15 @@ def widget_norm(
 ):
     if img_layer is None:
         return
-        
+
     worker = normalize(img_layer, perc=99)
-    
+
     def update_layer(vmax):
         # Update safely on the main thread
         img_layer.contrast_limits = [img_layer.contrast_limits[0], vmax]
 
     worker.returned.connect(update_layer)
-    
+
     # 1. Initialize and control the progress bar cleanly
     def start_progress():
         # Set to (0,0) for an indeterminate loading/busy animation
@@ -277,8 +283,9 @@ def widget_norm(
 
     worker.started.connect(start_progress)
     worker.finished.connect(stop_progress)
-    
+
     worker.start()
+
 
 # 2. Instantiate the progress bar widget and append it to the norm widget
 pbar = ProgressBar(visible=False)
@@ -293,7 +300,7 @@ pbar.label = ''
         step=1,
         min=1,
         max=255,
-        tooltip="Adjust all images' contrast_limits at once"
+        tooltip="Adjust all images' contrast_limits at once",
     ),
     auto_call=True,
 )
@@ -319,7 +326,10 @@ def widget_contrast_limits_all(
         if isinstance(l, L.Image):
             _min = l.contrast_limits[0]
             if contrast_limits_vmax > _min:
-                l.contrast_limits = [l.contrast_limits[0], contrast_limits_vmax]
+                l.contrast_limits = [
+                    l.contrast_limits[0],
+                    contrast_limits_vmax,
+                ]
 
 
 @magicgui(
@@ -330,7 +340,7 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
-        tooltip="Adjust z scale for all image layers"
+        tooltip='Adjust z scale for all image layers',
     ),
     scale_y=dict(
         label='Scale y',
@@ -339,7 +349,7 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
-        tooltip="Adjust y scale for all image layers"
+        tooltip='Adjust y scale for all image layers',
     ),
     scale_x=dict(
         label='Scale x',
@@ -348,25 +358,25 @@ def widget_contrast_limits_all(
         step=0.1,
         min=0.5,
         max=5.0,
-        tooltip="Adjust x scale for all image layers"
+        tooltip='Adjust x scale for all image layers',
     ),
     scale_z_default=dict(
         widget_type='PushButton',
         value=True,
         text='Reset z',
-        tooltip="Reset z scale to 1.0 for all image layers"
+        tooltip='Reset z scale to 1.0 for all image layers',
     ),
     scale_y_default=dict(
         widget_type='PushButton',
         value=True,
         text='Reset y',
-        tooltip="Reset y scale to 1.0 for all image layers"
+        tooltip='Reset y scale to 1.0 for all image layers',
     ),
     scale_x_default=dict(
         widget_type='PushButton',
         value=True,
         text='Reset x',
-        tooltip="Reset x scale to 1.0 for all image layers"
+        tooltip='Reset x scale to 1.0 for all image layers',
     ),
     auto_call=True,
     call_button=False,
@@ -493,10 +503,10 @@ def _scale_x_default(value):
 @magicgui(
     point_size=dict(
         label='Point size',
-        tooltip="Change size of all points at once",
-        widget_type="Slider",
+        tooltip='Change size of all points at once',
+        widget_type='Slider',
         value=10,
-        max=15
+        max=15,
     ),
     auto_call=True,
     call_button=False,
@@ -534,7 +544,7 @@ def widget_points(
         step=1,
         min=2,
         max=10,
-        tooltip="Number of bins in x direction for grid"
+        tooltip='Number of bins in x direction for grid',
     ),
     ybins=dict(
         label='y bins',
@@ -543,7 +553,7 @@ def widget_points(
         step=1,
         min=2,
         max=10,
-        tooltip="Number of bins in y direction for grid"
+        tooltip='Number of bins in y direction for grid',
     ),
     # thickness = dict(
     #     widget_type='FloatSlider',
@@ -553,7 +563,7 @@ def widget_points(
     #     max=10,
     # ),
     # auto_call=True
-    call_button='make grid'
+    call_button='make grid',
 )
 def widget_grid(
     img_layer: 'napari.layers.Image',
@@ -576,6 +586,7 @@ def widget_grid(
     LayerDataTuple or None
         Shapes layer data for the grid overlay, or ``None`` if no image exists.
     """
+
     def pairwise(x):
         """Yield adjacent pairs from an iterable.
 
@@ -595,12 +606,12 @@ def widget_grid(
 
     if img_layer is None:
         return
-    
+
     shape = img_layer.data.shape
     width = shape[-2] if shape[-1] == 3 else shape[-1]
     height = shape[-3] if shape[-1] == 3 else shape[-2]
-    bins_x = np.linspace(0, width, xbins+1, endpoint=True)
-    bins_y = np.linspace(0, height, ybins+1, endpoint=True)
+    bins_x = np.linspace(0, width, xbins + 1, endpoint=True)
+    bins_y = np.linspace(0, height, ybins + 1, endpoint=True)
     data = []
     # vertical
     for x in bins_x:
@@ -613,14 +624,12 @@ def widget_grid(
     # a pair of `features` and `text` argument can be used to put text on shape
     # object. but it does not support defining a translation for each obeject.
     XLABELS = 'ABCDEFGHIJ'
-    yoffset = - height * 0.05
-    xoffset = - width * 0.05
+    yoffset = -height * 0.05
+    xoffset = -width * 0.05
     for x0, x1 in pairwise(bins_x):
         data.append(np.array([[yoffset, x0], [yoffset, x1]]))
-        ...
     for y0, y1 in pairwise(bins_y):
         data.append(np.array([[y0, xoffset], [y1, xoffset]]))
-        ...
 
     text = {
         'string': '{number}',
@@ -631,9 +640,9 @@ def widget_grid(
     }
     features = {
         'number': (
-            ['' for _ in range(xbins + ybins + 2)] +  # empty for grid
-            [XLABELS[i] for i in range(xbins)] +  # ABCD...
-            list(range(ybins))  # 123..
+            ['' for _ in range(xbins + ybins + 2)]  # empty for grid
+            + [XLABELS[i] for i in range(xbins)]  # ABCD...
+            + list(range(ybins))  # 123..
         )
     }
     kwargs = dict(
@@ -679,7 +688,7 @@ def _hex_to_rgba(hex_color: str):
         RGBA values normalized to the range [0, 1].
     """
     h = hex_color.lstrip('#')
-    return [int(h[i: i + 2], 16) / 255.0 for i in (0, 2, 4)] + [1.0]
+    return [int(h[i : i + 2], 16) / 255.0 for i in (0, 2, 4)] + [1.0]
 
 
 _CLASS_COLORS_RGBA = [_hex_to_rgba(c) for c in _CLASS_COLORS_HEX]
@@ -689,6 +698,7 @@ _UNASSIGNED_RGBA = [0.7, 0.7, 0.7, 0.7]  # grey for points without a class
 # ---------------------------------------------------------------------------
 # PointClassWidget
 # ---------------------------------------------------------------------------
+
 
 class PointClassWidget(Container):
     """Optional widget for per-point numerical class annotation.
@@ -722,13 +732,13 @@ class PointClassWidget(Container):
         self._enable_cb = CheckBox(value=False, text='Enable class annotation')
         self._enable_cb.label = ''
         self._enable_cb.tooltip = (
-            "Enable or disable class annotation for the active points layer."
+            'Enable or disable class annotation for the active points layer.'
         )
 
         self._class_spin = SpinBox(value=0, min=0, max=_N_CLASSES - 1)
         self._class_spin.label = ''
         self._class_spin.enabled = False
-        self._class_spin.tooltip = "Select the class for new points."
+        self._class_spin.tooltip = 'Select the class for new points.'
 
         self._class_label = Label(value='Current class')
         self._class_label.label = ''
@@ -751,13 +761,13 @@ class PointClassWidget(Container):
             ],
             labels=False,
         )
-        setup_layout( self._class_row )
+        setup_layout(self._class_row)
 
         self._assign_btn = PushButton(text='Assign class to selected')
         self._assign_btn.label = ''
         self._assign_btn.enabled = False
         self._assign_btn.tooltip = (
-            "Assign the currently selected class to the selected points."
+            'Assign the currently selected class to the selected points.'
         )
 
         self._enable_cb.changed.connect(self._on_toggle)
@@ -856,7 +866,7 @@ class PointClassWidget(Container):
             return
         self._sync_class_column(layer)
         self._refresh_display(layer)
-        
+
     def _on_assign(self, _):
         """Assign the selected class to the currently selected points.
 
@@ -1056,10 +1066,12 @@ class PointClassWidget(Container):
             return
         if n > old_n:
             cls = self._class_spin.value
-            layer.features['class'] = np.concatenate([
-                layer.features['class'].to_numpy(),
-                np.full(n - old_n, cls, dtype=np.int64),
-            ])
+            layer.features['class'] = np.concatenate(
+                [
+                    layer.features['class'].to_numpy(),
+                    np.full(n - old_n, cls, dtype=np.int64),
+                ]
+            )
         else:
             layer.features['class'] = layer.features['class'].to_numpy()[:n]
 
@@ -1083,10 +1095,14 @@ class PointClassWidget(Container):
             return
         self._ensure_class_column(layer)
         classes = layer.features['class'].to_numpy().astype(int)
-        
+
         colors = np.array(
-            [_CLASS_COLORS_RGBA[c] if 0 <= c < _N_CLASSES else _UNASSIGNED_RGBA
-             for c in classes],
+            [
+                _CLASS_COLORS_RGBA[c]
+                if 0 <= c < _N_CLASSES
+                else _UNASSIGNED_RGBA
+                for c in classes
+            ],
             dtype=float,
         )
         self._refreshing = True
@@ -1107,9 +1123,7 @@ class MainWidget(Container):
     def __init__(self, layout='vertical'):
         cvt_widget = widget_cvtRGB()
         cvt_widget.call_button.text = 'Convert to RGB'
-        cvt_widget.call_button.tooltip = (
-            'Convert the selected image to RGB by moving the channel axis to the end'
-        )
+        cvt_widget.call_button.tooltip = 'Convert the selected image to RGB by moving the channel axis to the end'
 
         norm_widget = widget_norm
         norm_widget.call_button.text = 'Normalize (perc=99)'
@@ -1123,7 +1137,7 @@ class MainWidget(Container):
         grid_widget.call_button.tooltip = (
             'Make a grid on the selected image by drawing lines and labels'
         )
-        
+
         # Hide left labels to keep the UI compact in a single column.
         cvt_widget.label = ''
         norm_widget.label = ''
@@ -1140,17 +1154,23 @@ class MainWidget(Container):
         scale_reset_z_button = PushButton(text='Reset z')
         scale_reset_z_button.label = ''
         scale_reset_z_button.changed.connect(_scale_z_default)
-        scale_reset_z_button.tooltip = "Reset z scale to 1.0 for all image layers"
+        scale_reset_z_button.tooltip = (
+            'Reset z scale to 1.0 for all image layers'
+        )
 
         scale_reset_y_button = PushButton(text='Reset y')
         scale_reset_y_button.label = ''
         scale_reset_y_button.changed.connect(_scale_y_default)
-        scale_reset_y_button.tooltip = "Reset y scale to 1.0 for all image layers"
+        scale_reset_y_button.tooltip = (
+            'Reset y scale to 1.0 for all image layers'
+        )
 
         scale_reset_x_button = PushButton(text='Reset x')
         scale_reset_x_button.label = ''
         scale_reset_x_button.changed.connect(_scale_x_default)
-        scale_reset_x_button.tooltip = "Reset x scale to 1.0 for all image layers"
+        scale_reset_x_button.tooltip = (
+            'Reset x scale to 1.0 for all image layers'
+        )
 
         scale_reset_buttons = Container(
             layout='horizontal',
@@ -1178,7 +1198,7 @@ class MainWidget(Container):
         setup_layout(widget_scale)
         setup_layout(widget_contrast_limits_all)
         setup_layout(widget_points)
-        
+
         # Share one layer selector across Convert/Normalize/Grid to save space.
         cvt_widget.img_layer.label = 'Image layer'
         widget_points.point_layer.label = 'Point layer'
@@ -1203,9 +1223,14 @@ class MainWidget(Container):
             if selected_layer is not None:
                 vmax = selected_layer.contrast_limits[1]
 
-                if widget_contrast_limits_all.contrast_limits_vmax.value != vmax:
+                if (
+                    widget_contrast_limits_all.contrast_limits_vmax.value
+                    != vmax
+                ):
                     widget_contrast_limits_all.contrast_limits_vmax.max = vmax
-                    widget_contrast_limits_all.contrast_limits_vmax.value = vmax
+                    widget_contrast_limits_all.contrast_limits_vmax.value = (
+                        vmax
+                    )
 
         cvt_widget.img_layer.changed.connect(_sync_shared_img_layer)
         _sync_shared_img_layer()
@@ -1213,11 +1238,13 @@ class MainWidget(Container):
         help_button = PushButton(text='❓ Show help')
         help_button.label = ''
         help_button.changed.connect(lambda _: _show_help_dialog(self.native))
-        help_button.tooltip = (
-            'Show a help dialog with usage instructions and tips for this plugin'
+        help_button.tooltip = 'Show a help dialog with usage instructions and tips for this plugin'
+        help_button_row = Container(
+            layout='horizontal', widgets=[help_button], labels=False
         )
-        help_button_row = Container(layout='horizontal', widgets=[help_button], labels=False)
-        help_button_row.native.layout().setAlignment(help_button.native, Qt.AlignHCenter)
+        help_button_row.native.layout().setAlignment(
+            help_button.native, Qt.AlignHCenter
+        )
         setup_layout(help_button_row)
 
         image_tools = _make_titled_panel(
@@ -1266,16 +1293,11 @@ class MainWidget(Container):
 
 
 class ThresholdPoints(L.Points):
-    """Same as Points layer with additional data callbacks
-    """
+    """Same as Points layer with additional data callbacks"""
 
     _max_points_thumbnail = 1024
 
-    def __init__(
-        self,
-        data=None,
-        **kwargs
-    ):
+    def __init__(self, data=None, **kwargs):
         """Create a points layer that stores IDs and probabilities.
 
         Parameters
@@ -1365,15 +1387,14 @@ class ThresholdPoints(L.Points):
 
 @magic_factory(
     # point_layer=dict(tooltip="Select probability csv"),
-    threshold=dict(widget_type='FloatSlider',
-                   min=0, max=1.0, step=0.01, value=0.5),
+    threshold=dict(
+        widget_type='FloatSlider', min=0, max=1.0, step=0.01, value=0.5
+    ),
     auto_call=True,
     call_button=True,
 )
 def threshold_prob(
-    viewer: 'napari.Viewer',
-    point_layer: L.Points,
-    threshold
+    viewer: 'napari.Viewer', point_layer: L.Points, threshold
 ) -> L.Points:
     """Filter points by probability and return a thresholded points layer.
 
@@ -1396,7 +1417,7 @@ def threshold_prob(
 
     if 'probability' in point_layer.properties:
         prob = point_layer.properties['probability']
-        m = prob > threshold        
+        m = prob > threshold
 
         # update Points
         name = 'threshold_prob'
@@ -1477,4 +1498,6 @@ class PredictionWidget(Container):
             [prediction_widget],
         )
 
-        super().__init__(layout=layout, widgets=[prediction_tools], labels=False)
+        super().__init__(
+            layout=layout, widgets=[prediction_tools], labels=False
+        )
