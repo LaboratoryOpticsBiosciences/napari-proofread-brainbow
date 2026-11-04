@@ -38,7 +38,7 @@ testing = [
     "pytest-cov",  # https://pytest-cov.readthedocs.io/en/latest/
     "pytest-qt",  # https://pytest-qt.readthedocs.io/en/latest/
     "napari",
-    "pyqt6",
+    "pyqt6<6.12",
     "setuptools-scm",
 ]
 
