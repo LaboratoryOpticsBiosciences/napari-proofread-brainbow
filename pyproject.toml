@@ -1,5 +1,5 @@
 [project]
-name = "napari-point-proofread"
+name = "napari-proofread-brainbow"
 dynamic = ["version"]
 description = "Proofreading Brainbow images with napari"
 readme = "README.md"
@@ -37,7 +37,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Allow easily installation with the full, default napari installation
-# (including Qt backend) using napari-point-proofread[all].
+# (including Qt backend) using napari-proofread-brainbow[all].
 all = ["napari[all]"]
 
 [dependency-groups]
@@ -51,7 +51,7 @@ dev = [
 ]
 
 [project.entry-points."napari.manifest"]
-napari-point-proofread = "napari_point_proofread:napari.yaml"
+napari-proofread-brainbow = "napari_point_proofread:napari.yaml"
 
 [project.urls]
 "Bug Tracker" = "https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread/issues"
