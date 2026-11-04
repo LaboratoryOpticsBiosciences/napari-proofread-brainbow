@@ -1,26 +1,26 @@
-name: napari-proofread-brainbow
-display_name: Proofread Brainbow
+name: napari-point-proofread
+display_name: Point Proofread
 # use 'hidden' to remove plugin from napari hub search results
 visibility: public
 # see https://napari.org/stable/plugins/technical_references/manifest.html#fields for valid categories
 categories: ["Annotation"]
 contributions:
   commands:
-    - id: napari-proofread-brainbow.make_qwidget
+    - id: napari-point-proofread.make_qwidget
       python_name: napari_point_proofread._widget:MainWidget
       title: Make main proofreading widget
-    - id: napari-proofread-brainbow.threshold_prob
+    - id: napari-point-proofread.threshold_prob
       python_name: napari_point_proofread._widget:PredictionWidget
       title: Make prediction proofreading widget
-    - id: napari-proofread-brainbow.write_points
+    - id: napari-point-proofread.write_points
       python_name: napari_point_proofread._io:write_points_csv_preserve_types
       title: Write points CSV preserving integer properties
   widgets:
-    - command: napari-proofread-brainbow.make_qwidget
+    - command: napari-point-proofread.make_qwidget
       display_name: Manual Proofread
-    - command: napari-proofread-brainbow.threshold_prob
+    - command: napari-point-proofread.threshold_prob
       display_name: Proofread Predictions (from csv)
   writers:
-    - command: napari-proofread-brainbow.write_points
+    - command: napari-point-proofread.write_points
       layer_types: ["points"]
       filename_extensions: [".csv"]

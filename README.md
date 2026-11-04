@@ -10,12 +10,12 @@ https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread
 [![npe2](https://img.shields.io/badge/plugin-npe2-blue?link=https://napari.org/stable/plugins/index.html)](https://napari.org/stable/plugins/index.html)
 [![Copier](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/copier-org/copier/master/img/badge/badge-grayscale-inverted-border-purple.json)](https://github.com/copier-org/copier)
 
-Proofreading Brainbow images with napari
+Proofreading point annotations on images with napari
 
 ----------------------------------
 
 > [!IMPORTANT]
-> Since v0.4.0 this plugin is published as `napari-point-proofread`. It was previously released as `napari-proofread-brainbow` (up to v0.3.1), which is no longer maintained. If you have the old package installed, run `pip uninstall napari-proofread-brainbow` before installing the new one.
+> Since v0.4.0 this plugin is published as `napari-point-proofread`. It was previously released as `napari-proofread-brainbow` (up to v0.3.3), which is no longer maintained. If you have the old package installed, run `pip uninstall napari-proofread-brainbow` before installing the new one.
 
 
 This [napari] plugin was generated with [copier] using the [napari-plugin-template].
@@ -42,8 +42,8 @@ If napari is not already installed, you can install `napari-point-proofread` wit
 
 This plugin provides two panels in napari:
 
-- **Plugins > Proofread Brainbow > Manual Proofread**
-- **Plugins > Proofread Brainbow > Proofread Predictions (from csv)**
+- **Plugins > Point Proofread > Manual Proofread**
+- **Plugins > Point Proofread > Proofread Predictions (from csv)**
 
 ### 1. Open napari and load your data
 
@@ -52,15 +52,15 @@ This plugin provides two panels in napari:
     ```bash
     napari
     ```
-2. Drag and drop your Brainbow image into the viewer (or use **File > Open File(s)...**).
+2. Drag and drop your image into the viewer (or use **File > Open File(s)...**).
 3. If you have prediction points, also load the CSV file.
 
 ![Screenshot placeholder: napari with raw image and optional CSV loaded](docs/images/step-1-load-data.png)
 
 ### 2. Open the plugin widgets
 
-1. Open **Plugins > Proofread Brainbow > Manual Proofread**.
-2. (Optional) Open **Plugins > Proofread Brainbow > Proofread Predictions (from csv)** if you want to review model predictions.
+1. Open **Plugins > Point Proofread > Manual Proofread**.
+2. (Optional) Open **Plugins > Point Proofread > Proofread Predictions (from csv)** if you want to review model predictions.
 
 ![Screenshot placeholder: plugin menu showing both widgets](docs/images/step-2-open-widgets.png)
 
@@ -101,7 +101,7 @@ In **Proofread Predictions (from csv)**:
 
 1. Select your final points layer.
 2. Save as CSV from napari.
-3. In the save dialog, set **Files of type** to **Proofread Brainbow points (*.csv)** (as shown in the image). Otherwise, values that should remain integers (for example, class labels) may not be saved correctly.
+3. In the save dialog, set **Files of type** to **Point Proofread (*.csv)** (as shown in the image). Otherwise, values that should remain integers (for example, class labels) may not be saved correctly.
 
 ![Screenshot placeholder: saving points layer to CSV](docs/images/step-6-save-csv.png)
 
@@ -134,7 +134,7 @@ pip install -e . --group dev
 napari
 ```
 
-The plugin should appear under *Plugins > Proofread Brainbow*
+The plugin should appear under *Plugins > Point Proofread*
 
 ### With uv
 

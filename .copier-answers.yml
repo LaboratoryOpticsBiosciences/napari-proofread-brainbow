@@ -1,7 +1,7 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
 _commit: v2.3.0
 _src_path: https://github.com/napari/napari-plugin-template
-display_name: Proofread Brainbow
+display_name: Point Proofread
 email: sungbin246@gmail.com
 full_name: Seongbin Lim
 github_repository_url: https://github.com/LaboratoryOpticsBiosciences/napari-point-proofread
@@ -15,4 +15,4 @@ install_precommit: true
 license: MIT
 module_name: napari_point_proofread
 plugin_name: napari-point-proofread
-short_description: Proofreading Brainbow images with napari
+short_description: Proofreading point annotations on images with napari

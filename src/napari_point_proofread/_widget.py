@@ -34,7 +34,7 @@ from qtpy.QtCore import Qt
 from qtpy.QtWidgets import QLabel, QMessageBox, QSizePolicy
 
 _HELP_TEXT = (
-    '<h2>Proofread Brainbow - Quick Guide 🛠</h2>'
+    '<h2>Point Proofread - Quick Guide 🛠</h2>'
     '<h3>🖼️ Image workflow</h3>'
     '<ul>'
     '  <li>Open an image (or drag and drop).</li>'
@@ -80,7 +80,7 @@ def _build_help_dialog(parent=None):
         Configured modal help dialog.
     """
     msg_box = QMessageBox(parent)
-    msg_box.setWindowTitle('Proofread Brainbow Help')
+    msg_box.setWindowTitle('Point Proofread Help')
     msg_box.setIcon(QMessageBox.Information)
     msg_box.setTextFormat(Qt.RichText)
     msg_box.setText(_HELP_TEXT)
@@ -183,7 +183,7 @@ def setup_layout(gui_container):
 
 
 @magic_factory(
-    img_layer=dict(tooltip='Select raw Brainbow image'),
+    img_layer=dict(tooltip='Select raw image'),
     call_button='Convert to RGB',
 )
 def widget_cvtRGB(

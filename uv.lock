@@ -1986,7 +1986,7 @@ wheels = [
 ]
 
 [[package]]
-name = "napari-proofread-brainbow"
+name = "napari-point-proofread"
 source = { editable = "." }
 dependencies = [
     { name = "magicgui" },
