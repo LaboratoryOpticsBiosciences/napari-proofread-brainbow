@@ -5,3 +5,5 @@ except ImportError:
 
 
 from ._widget import MainWidget, PredictionWidget, threshold_prob
+from ._postprocess_widget import post_process_filters
+from ._score_widget import compute_score

@@ -12,6 +12,9 @@ contributions:
     - id: napari-point-proofread.postprocess_filters
       python_name: napari_point_proofread._postprocess_widget:PostProcessWidget
       title: Make post-processing widget
+    - id: napari-point-proofread.compute_score
+      python_name: napari_point_proofread._score_widget:compute_score
+      title: Compute score between annotation and detection
     - id: napari-point-proofread.write_points
       python_name: napari_point_proofread._io:write_points_csv_preserve_types
       title: Write points CSV preserving integer properties
@@ -20,6 +23,8 @@ contributions:
       display_name: Manual Proofread
     - command: napari-point-proofread.postprocess_filters
       display_name: Post-processing filters
+    - command: napari-point-proofread.compute_score
+      display_name: Compute score between annotation and detection
   writers:
     - command: napari-point-proofread.write_points
       layer_types: ["points"]
