@@ -1,19 +1,13 @@
-
+import numpy as np
 from magicgui import magic_factory
 from magicgui.widgets import Container, Label
 from napari import Viewer
 from napari.layers import Points
-import numpy as np
-from scipy.spatial import distance_matrix
-from typing import Tuple, List
-
 from qtpy.QtWidgets import QMessageBox
+from scipy.spatial.distance import cdist
 
-def compute_f1(tp:int,
-               fp:int,
-               fn:int,
-               am:int=0
-    ) -> float:
+
+def compute_f1(tp: int, fp: int, fn: int, am: int = 0) -> float:
     """Compute the F1 score.
 
     Parameters
@@ -41,10 +35,11 @@ def compute_f1(tp:int,
 
     return f1_score
 
+
 def create_points_layer_from_pairs(
     annotations: np.ndarray,
     detections: np.ndarray,
-    pairs: List[Tuple[int, int, float]],
+    pairs: list[tuple[int, int, float]],
 ) -> Points:
     pairs = [(int(p[0]), int(p[1]), float(p[2])) for p in pairs]
 
@@ -59,41 +54,43 @@ def create_points_layer_from_pairs(
     # Matched (use detection coordinates)
     for det_idx, _, dist in pairs:
         coords.append(detections[det_idx])
-        types.append("matched")
+        types.append('matched')
         distances.append(dist)
-        colors.append("green")
+        colors.append('green')
 
     # False positives
     for i in range(len(detections)):
         if i not in matched_det_idx:
             coords.append(detections[i])
-            types.append("false_positive")
+            types.append('false_positive')
             distances.append(np.nan)
-            colors.append("red")
+            colors.append('red')
 
     # False negatives
     for i in range(len(annotations)):
         if i not in matched_ann_idx:
             coords.append(annotations[i])
-            types.append("false_negative")
+            types.append('false_negative')
             distances.append(np.nan)
-            colors.append("blue")
+            colors.append('blue')
 
     return Points(
         np.array(coords),
-        name="Greedy matching",
+        name='Greedy matching',
         ndim=annotations.shape[1],
-        properties={"type": types, "distance": distances},
+        properties={'type': types, 'distance': distances},
         face_color=colors,
         size=5,
     )
 
 
-def greedy_matching(annotations: np.ndarray,
-                    detections: np.ndarray,
-                    threshold: float,
-                    return_ambiguous: bool = False
-                    ) -> Tuple[int, int, int, List[Tuple[int, int, float]]]:
+def greedy_matching(
+    annotations: np.ndarray,
+    detections: np.ndarray,
+    threshold: float,
+    detection_probabilities: np.ndarray | None = None,
+    return_ambiguous: bool = False,
+) -> tuple[int, int, int, list[tuple[int, int, float]]]:
     """Apply greedy matching to the annotations and detections.
     Note there is no False negative detection.
 
@@ -108,6 +105,10 @@ def greedy_matching(annotations: np.ndarray,
     threshold : float
         The maximum distance between an annotation and a detection for them to
         be considered a possible match.
+    detection_probabilities : np.ndarray, optional
+        Per-detection probability scores. When multiple candidate pairs share
+        the same minimum distance, the detection with the highest probability
+        is selected first.
     return_ambiguous : bool
         Whether to return the number of ambiguous matches.
 
@@ -122,27 +123,46 @@ def greedy_matching(annotations: np.ndarray,
     distance_pairs : list of tuples
         The list of distance pairs. Each tuple contains the indices of the
         detection and the annotation, and the distance between them.
-    n_ambiguous : int
-        The number of ambiguous matches. An ambiguous match is a detection
-        that is matched to more than one annotation. This is only returned if
-        return_ambiguous is True.
     ambiguous : list of int
-        The indices of the ambiguous matches in detections.
-        This is only returned if return_ambiguous is True.
+        The indices of the ambiguous matches in detections. An ambiguous match
+        is a detection that could be matched to more than one annotation. This is only returned if return_ambiguous is True. This is only returned if return_ambiguous is True.
     """
 
-    distance_matrix_ = distance_matrix(annotations, detections).T
+    # using cdist instead of distance_matrix to avoid a bug in scipy 1.10.1
+    distance_matrix_ = cdist(detections, annotations)
+
+    if detection_probabilities is not None and len(
+        detection_probabilities
+    ) != len(detections):
+        raise ValueError(
+            'detection_probabilities must have the same length as detections.'
+        )
 
     distance_matrix_copy = distance_matrix_.copy()
     pairs = []
 
     while True:
-        min_idx = np.unravel_index(np.argmin(distance_matrix_copy), distance_matrix_copy.shape)
+        min_distance = np.min(distance_matrix_copy)
 
-        if distance_matrix_copy[min_idx] > threshold: # No more matches
+        if min_distance > threshold:  # No more matches
             break
 
-        pairs.append((int(min_idx[0]), int(min_idx[1]), distance_matrix_copy[min_idx]))
+        candidates = np.argwhere(
+            np.isclose(distance_matrix_copy, min_distance)
+        )
+
+        if detection_probabilities is not None and len(candidates) > 1:
+            candidate_probabilities = detection_probabilities[candidates[:, 0]]
+            max_probability = np.max(candidate_probabilities)
+            candidates = candidates[
+                np.isclose(candidate_probabilities, max_probability)
+            ]
+
+        min_idx = tuple(candidates[0])
+
+        pairs.append(
+            (int(min_idx[0]), int(min_idx[1]), distance_matrix_copy[min_idx])
+        )
 
         # Set distances to infinity for the selected row and column
         distance_matrix_copy[min_idx[0], :] = np.inf
@@ -158,40 +178,47 @@ def greedy_matching(annotations: np.ndarray,
 
         if true_positives != 0:
             for i in range(distance_matrix_.shape[0]):
-                if i not in pairs[:,0]:
+                if i not in pairs[:, 0]:
                     continue
 
-                matches = np.sum(distance_matrix_[i,:] < threshold)
+                matches = np.sum(distance_matrix_[i, :] < threshold)
 
                 if matches > 1:
                     ambiguous.append(i)
 
-        return true_positives, false_positives, false_negatives, pairs, len(ambiguous), ambiguous
+        return (
+            true_positives,
+            false_positives,
+            false_negatives,
+            pairs,
+            ambiguous,
+        )
 
     return true_positives, false_positives, false_negatives, pairs
 
+
 def compute_score() -> Container:
     """Build the score widget with a visible F1 result label."""
-    score_label = Label(value="F1 score: -")
-    score_label.label = ""
+    score_label = Label(value='F1 score: -')
+    score_label.label = ''
 
     @magic_factory(
         greedy_threshold={
-            "widget_type": "FloatSlider",
-            "min": 0.0,
-            "max": 100.0,
-            "step": 1.0,
-            "value": 10.0,
+            'widget_type': 'FloatSlider',
+            'min': 0.0,
+            'max': 100.0,
+            'step': 1.0,
+            'value': 10.0,
         },
         auto_call=False,
-        call_button="Show greedy matching",
+        call_button='Show greedy matching',
     )
     def _compute_score(
         viewer: Viewer,
         annotation_layer: Points,
         detection_layer: Points,
         greedy_threshold: float = 10.0,
-        return_ambiguous: bool = False
+        return_ambiguous: bool = False,
     ) -> Points | None:
         """
         Compute the (F1) score between the annotation and detection layers using greedy matching.
@@ -201,39 +228,46 @@ def compute_score() -> Container:
         The function returns a new Points layer containing the matched pairs in green, the false positives in red, and the false negatives in blue.
         """
         if annotation_layer is None or detection_layer is None:
-            score_label.value = "F1 score: -"
+            score_label.value = 'F1 score: -'
             return None
 
         coordinates_annotations = annotation_layer.data
         coordinates_detections = detection_layer.data
 
-        if len(coordinates_annotations) == 0 or len(coordinates_detections) == 0:
-            score_label.value = "F1 score: -"
+        if (
+            len(coordinates_annotations) == 0
+            or len(coordinates_detections) == 0
+        ):
+            score_label.value = 'F1 score: -'
             QMessageBox.warning(
                 None,
-                "Empty layer",
-                "One of the layers is empty. Please provide non-empty annotation and detection layers.",
+                'Empty layer',
+                'One of the layers is empty. Please provide non-empty annotation and detection layers.',
             )
             return None
-        
+
         result = greedy_matching(
             annotations=coordinates_annotations,
             detections=coordinates_detections,
             threshold=greedy_threshold,
+            detection_probabilities=(
+                detection_layer.features['probability'].to_numpy()
+                if 'probability' in detection_layer.features
+                else None
+            ),
             return_ambiguous=return_ambiguous,
         )
 
-
         if return_ambiguous:
-            tp, fp, fn, pairs, n_ambiguous, ambiguous = result
+            tp, fp, fn, pairs, ambiguous = result
         else:
             tp, fp, fn, pairs = result
-            n_ambiguous, ambiguous = 0, []
+            ambiguous = []
 
-        score = compute_f1(tp, fp, fn, n_ambiguous)
-        score_label.value = f"F1 score: {score:.3f}, TP: {tp}, FP: {fp}, FN: {fn}, Ambiguous: {n_ambiguous}"
+        score = compute_f1(tp, fp, fn, len(ambiguous))
+        score_label.value = f'F1 score: {score:.3f}, TP: {tp}, FP: {fp}, FN: {fn}, Ambiguous: {len(ambiguous)}'
 
-        name = f"Greedy matching"
+        name = 'Greedy matching'
 
         existing = next(
             (layer for layer in viewer.layers if layer.name == name),
