@@ -20,12 +20,18 @@ class MatchType(Enum):
         self.color = color
 
 
+_AMBIGUOUS_TOOLTIP_TEXT = (
+    'Ambiguous matches are detections that could be matched to more than one annotation.\n'
+    'This can happen when multiple annotations are within the distance threshold of a detection.\n'
+    'In this case, the detection is considered ambiguous and is not counted as a true positive.'
+)
+
 _TOOLTIP_TEXT = (
     'F1 score: harmonic mean of precision and recall\n'
     'TP: True Positives are detections that match an annotation within the distance threshold.\n'
     'FP: False Positives are detections that do not match any annotation.\n'
     'FN: False Negatives are annotations that do not match any detection.\n'
-    'Ambiguous: matches are detections that could be matched to more than one annotation.'
+    f'Ambiguous: {_AMBIGUOUS_TOOLTIP_TEXT}'
 )
 
 
@@ -271,6 +277,11 @@ def compute_score() -> Container:
             'max': 100.0,
             'step': 1.0,
             'value': 10.0,
+        },
+        return_ambiguous={
+            'widget_type': 'CheckBox',
+            'label': 'Show ambiguous matches',
+            'tooltip': _AMBIGUOUS_TOOLTIP_TEXT,
         },
         auto_call=True,
         call_button='Show greedy matching',
