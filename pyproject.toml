@@ -33,6 +33,7 @@ dependencies = [
     "numpy",
     "magicgui",
     "qtpy",
+    "pyqt6<6.12",
 ]
 
 [project.optional-dependencies]
