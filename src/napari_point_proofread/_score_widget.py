@@ -40,7 +40,34 @@ def create_points_layer_from_pairs(
     annotations: np.ndarray,
     detections: np.ndarray,
     pairs: list[tuple[int, int, float]],
+    ambiguous: list[int] = None,
 ) -> Points:
+    """Create a points layer from the matched pairs.
+
+    Parameters
+    ----------
+    annotations : array_like
+        (n*d) with n the number of annotations and d the dimensionality of the
+        annotations
+    detections : array_like
+        (m*d) with m the number of detections and d the dimensionality of the
+        detections
+    pairs : list of tuples
+        The list of distance pairs. Each tuple contains the indices of the
+        detection and the annotation, and the distance between them.
+    ambiguous : list of int
+        The indices of the ambiguous matches in detections. An ambiguous match
+        is a detection that could be matched to more than one annotation.
+
+    Returns
+    -------
+    Points
+        The points layer.
+    """
+
+    if ambiguous is None:
+        ambiguous = []
+
     pairs = [(int(p[0]), int(p[1]), float(p[2])) for p in pairs]
 
     matched_det_idx = {p[0] for p in pairs}
@@ -49,37 +76,50 @@ def create_points_layer_from_pairs(
     coords = []
     types = []
     distances = []
-    colors = []
+    face_colors = []  # represent the type of match: TP, FP, FN
+    border_color = []  # represent ambiguous matches
 
     # Matched (use detection coordinates)
     for det_idx, _, dist in pairs:
         coords.append(detections[det_idx])
-        types.append('matched')
+        types.append('TP')
         distances.append(dist)
-        colors.append('green')
+        face_colors.append('green')
 
     # False positives
     for i in range(len(detections)):
         if i not in matched_det_idx:
             coords.append(detections[i])
-            types.append('false_positive')
+            types.append('FP')
             distances.append(np.nan)
-            colors.append('red')
+            face_colors.append('red')
 
     # False negatives
     for i in range(len(annotations)):
         if i not in matched_ann_idx:
             coords.append(annotations[i])
-            types.append('false_negative')
+            types.append('FN')
             distances.append(np.nan)
-            colors.append('blue')
+            face_colors.append('blue')
+
+    ambiguous_ = [i in ambiguous for i in range(len(coords))]
+    for i in range(len(coords)):
+        if ambiguous_[i]:
+            border_color.append('yellow')
+        else:
+            border_color.append('transparent')
 
     return Points(
         np.array(coords),
         name='Greedy matching',
         ndim=annotations.shape[1],
-        properties={'type': types, 'distance': distances},
-        face_color=colors,
+        properties={
+            'type': types,
+            'distance': distances,
+            'ambiguous': ambiguous_,
+        },
+        face_color=face_colors,
+        border_color=border_color,
         size=5,
     )
 
@@ -281,6 +321,7 @@ def compute_score() -> Container:
             annotations=coordinates_annotations,
             detections=coordinates_detections,
             pairs=pairs,
+            ambiguous=ambiguous,
         )
 
         points.name = name
