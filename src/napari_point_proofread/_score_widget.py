@@ -20,6 +20,25 @@ class MatchType(Enum):
         self.color = color
 
 
+class ScoreTooltip:
+    """Tooltip for the score widget."""
+
+    def __init__(self, tp: int, fp: int, fn: int, am: int):
+        self.tp = tp
+        self.fp = fp
+        self.fn = fn
+        self.am = am
+
+    def __str__(self) -> str:
+        return (
+            'F1 score: harmonic mean of precision and recall\n'
+            'TP: True Positives are detections that match an annotation within the distance threshold.\n'
+            'FP: False Positives are detections that do not match any annotation.\n'
+            'FN: False Negatives are annotations that do not match any detection.\n'
+            'Ambiguous: matches are detections that could be matched to more than one annotation.'
+        )
+
+
 def compute_f1(tp: int, fp: int, fn: int, am: int = 0) -> float:
     """Compute the F1 score.
 
@@ -328,6 +347,11 @@ def compute_score() -> Container:
             f'Ambiguous: <span style="color: {MatchType.AMBIGUOUS.color};">{len(ambiguous)}</span>'
         )
         name = f'Greedy matching (annot: {annotation_layer.name}, det: {detection_layer.name})'
+
+        # add a tooltip on score_label to explain what the numbers mean
+        score_label.tooltip = ScoreTooltip(
+            tp, fp, fn, len(ambiguous)
+        ).__str__()
 
         existing = next(
             (layer for layer in viewer.layers if layer.name == name),
