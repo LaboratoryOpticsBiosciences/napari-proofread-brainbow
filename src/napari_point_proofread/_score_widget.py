@@ -1,3 +1,5 @@
+from enum import Enum
+
 import numpy as np
 from magicgui import magic_factory
 from magicgui.widgets import Container, Label
@@ -5,6 +7,17 @@ from napari import Viewer
 from napari.layers import Points
 from qtpy.QtWidgets import QMessageBox
 from scipy.spatial.distance import cdist
+
+
+class MatchType(Enum):
+    TRUE_POSITIVE = ('TP', 'green')
+    FALSE_POSITIVE = ('FP', 'red')
+    FALSE_NEGATIVE = ('FN', 'blue')
+    AMBIGUOUS = ('ambiguous', 'yellow')
+
+    def __init__(self, abbreviation: str, color: str):
+        self.abbreviation = abbreviation
+        self.color = color
 
 
 def compute_f1(tp: int, fp: int, fn: int, am: int = 0) -> float:
@@ -82,30 +95,30 @@ def create_points_layer_from_pairs(
     # Matched (use detection coordinates)
     for det_idx, _, dist in pairs:
         coords.append(detections[det_idx])
-        types.append('TP')
+        types.append(MatchType.TRUE_POSITIVE.abbreviation)
         distances.append(dist)
-        face_colors.append('green')
+        face_colors.append(MatchType.TRUE_POSITIVE.color)
 
     # False positives
     for i in range(len(detections)):
         if i not in matched_det_idx:
             coords.append(detections[i])
-            types.append('FP')
+            types.append(MatchType.FALSE_POSITIVE.abbreviation)
             distances.append(np.nan)
-            face_colors.append('red')
+            face_colors.append(MatchType.FALSE_POSITIVE.color)
 
     # False negatives
     for i in range(len(annotations)):
         if i not in matched_ann_idx:
             coords.append(annotations[i])
-            types.append('FN')
+            types.append(MatchType.FALSE_NEGATIVE.abbreviation)
             distances.append(np.nan)
-            face_colors.append('blue')
+            face_colors.append(MatchType.FALSE_NEGATIVE.color)
 
     ambiguous_ = [i in ambiguous for i in range(len(coords))]
     for i in range(len(coords)):
         if ambiguous_[i]:
-            border_color.append('yellow')
+            border_color.append(MatchType.AMBIGUOUS.color)
         else:
             border_color.append('transparent')
 
@@ -250,7 +263,7 @@ def compute_score() -> Container:
             'step': 1.0,
             'value': 10.0,
         },
-        auto_call=False,
+        auto_call=True,
         call_button='Show greedy matching',
     )
     def _compute_score(
@@ -305,9 +318,16 @@ def compute_score() -> Container:
             ambiguous = []
 
         score = compute_f1(tp, fp, fn, len(ambiguous))
-        score_label.value = f'F1 score: {score:.3f}, TP: {tp}, FP: {fp}, FN: {fn}, Ambiguous: {len(ambiguous)}'
 
-        name = 'Greedy matching'
+        # each value is colored according to the type of match
+        score_label.value = (
+            f'F1 score: {score:.3f}'
+            f'TP: <span style="color: {MatchType.TRUE_POSITIVE.color};">{tp}</span>, '
+            f'FP: <span style="color: {MatchType.FALSE_POSITIVE.color};">{fp}</span>, '
+            f'FN: <span style="color: {MatchType.FALSE_NEGATIVE.color};">{fn}</span>, '
+            f'Ambiguous: <span style="color: {MatchType.AMBIGUOUS.color};">{len(ambiguous)}</span>'
+        )
+        name = f'Greedy matching (annot: {annotation_layer.name}, det: {detection_layer.name})'
 
         existing = next(
             (layer for layer in viewer.layers if layer.name == name),
