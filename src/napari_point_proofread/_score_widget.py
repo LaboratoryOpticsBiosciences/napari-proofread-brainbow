@@ -20,23 +20,13 @@ class MatchType(Enum):
         self.color = color
 
 
-class ScoreTooltip:
-    """Tooltip for the score widget."""
-
-    def __init__(self, tp: int, fp: int, fn: int, am: int):
-        self.tp = tp
-        self.fp = fp
-        self.fn = fn
-        self.am = am
-
-    def __str__(self) -> str:
-        return (
-            'F1 score: harmonic mean of precision and recall\n'
-            'TP: True Positives are detections that match an annotation within the distance threshold.\n'
-            'FP: False Positives are detections that do not match any annotation.\n'
-            'FN: False Negatives are annotations that do not match any detection.\n'
-            'Ambiguous: matches are detections that could be matched to more than one annotation.'
-        )
+_TOOLTIP_TEXT = (
+    'F1 score: harmonic mean of precision and recall\n'
+    'TP: True Positives are detections that match an annotation within the distance threshold.\n'
+    'FP: False Positives are detections that do not match any annotation.\n'
+    'FN: False Negatives are annotations that do not match any detection.\n'
+    'Ambiguous: matches are detections that could be matched to more than one annotation.'
+)
 
 
 def compute_f1(tp: int, fp: int, fn: int, am: int = 0) -> float:
@@ -50,7 +40,7 @@ def compute_f1(tp: int, fp: int, fn: int, am: int = 0) -> float:
         The number of false positives.
     fn : int
         The number of false negatives.
-    amint : int, optional
+    am : int, optional
         The number of ambiguous pairs, by default 0
 
     Returns
@@ -349,9 +339,7 @@ def compute_score() -> Container:
         name = f'Greedy matching (annot: {annotation_layer.name}, det: {detection_layer.name})'
 
         # add a tooltip on score_label to explain what the numbers mean
-        score_label.tooltip = ScoreTooltip(
-            tp, fp, fn, len(ambiguous)
-        ).__str__()
+        score_label.tooltip = _TOOLTIP_TEXT
 
         existing = next(
             (layer for layer in viewer.layers if layer.name == name),
