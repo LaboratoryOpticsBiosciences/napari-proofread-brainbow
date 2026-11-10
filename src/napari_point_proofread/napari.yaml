@@ -7,8 +7,8 @@ categories: ["Annotation"]
 contributions:
   commands:
     - id: napari-point-proofread.make_qwidget
-      python_name: napari_point_proofread._widget:MainWidget
-      title: Make main proofreading widget
+      python_name: napari_point_proofread._image_widget:MainWidget
+      title: Make image widget
     - id: napari-point-proofread.postprocess_filters
       python_name: napari_point_proofread._postprocess_widget:PostProcessWidget
       title: Make post-processing widget
@@ -20,7 +20,7 @@ contributions:
       title: Write points CSV preserving integer properties
   widgets:
     - command: napari-point-proofread.make_qwidget
-      display_name: Manual Proofread
+      display_name: Prepare image space for proofreading
     - command: napari-point-proofread.postprocess_filters
       display_name: Post-processing filters
     - command: napari-point-proofread.compute_score
